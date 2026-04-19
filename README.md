@@ -44,14 +44,18 @@ actually optimal under Wasserstein distance, or does the optimal independent app
 
 Our method is based on a Wasserstein GAN objective. Given data $X_1,\dots,X_n \sim P$, we consider
 
+Our method is based on a Wasserstein GAN objective. Given data $X_1,\dots,X_n \sim P$, we consider
+
 $$
 \min_\theta \max_{f \in \mathrm{Lip}(1)}
 \left\{
-\frac{1}{n}\sum_{i=1}^n f(X_i)- \mathbb{E}\bigl[f(G_\theta(Z))\bigr]
-\right\}.
+\frac{1}{n}\sum_{i=1}^n f(X_i)
+-
+\mathbb{E}[f(G_\theta(Z))]
+\right\}
 $$
 
-The key restriction is that the generator is factorized coordinate-wise:
+The key restriction is that the generator is factorized coordinate-wise,
 
 $$
 G_\theta(Z)
