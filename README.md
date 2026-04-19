@@ -47,9 +47,7 @@ Our method is based on a Wasserstein GAN objective. Given data $X_1,\dots,X_n \s
 $$
 \min_\theta \max_{f \in \mathrm{Lip}(1)}
 \left\{
-\frac{1}{n}\sum_{i=1}^n f(X_i)
--
-\mathbb{E}\bigl[f(G_\theta(Z))\bigr]
+\frac{1}{n}\sum_{i=1}^n f(X_i)- \mathbb{E}\bigl[f(G_\theta(Z))\bigr]
 \right\}.
 $$
 
