@@ -46,9 +46,9 @@ Our method is based on a Wasserstein GAN objective. Given data $X_1,\dots,X_n \s
 
 $$
 \min_\theta \max_{f \in \mathrm{Lip}(1)}
-\left\{
+\left(
 \frac{1}{n}\sum_{i=1}^n f(X_i) - \mathbb{E}[f(G_\theta(Z))]
-\right\}
+\right)
 $$
 
 The key restriction is that the generator is factorized coordinate-wise,
