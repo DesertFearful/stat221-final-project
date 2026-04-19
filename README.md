@@ -54,9 +54,7 @@ $$
 The key restriction is that the generator is factorized coordinate-wise,
 
 $$
-G_\theta(Z)
-=
-\bigl(G_{1,\theta_1}(Z_1),\dots,G_{d,\theta_d}(Z_d)\bigr),
+G_\theta(Z) = \bigl(G_{1,\theta_1}(Z_1), \dots, G_{d,\theta_d}(Z_d)\bigr)
 $$
 
 where $Z_1,\dots,Z_d$ are independent latent variables.
