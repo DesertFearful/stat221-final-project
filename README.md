@@ -42,9 +42,7 @@ actually optimal under Wasserstein distance, or does the optimal independent app
 
 ## Method
 
-Our method is based on a Wasserstein GAN objective. Given data $X_1,\dots,X_n \sim P$, we consider
-
-Our method is based on a Wasserstein GAN objective. Given data $X_1,\dots,X_n \sim P$, we consider
+Our method is based on a Wasserstein GAN objective. Given data $X_1,\dots,X_n \sim P$, we consider 
 
 $$
 \min_\theta \max_{f \in \mathrm{Lip}(1)}
