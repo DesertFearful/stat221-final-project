@@ -33,6 +33,7 @@ class FactorizedGenerator(nn.Module):
 class Critic(nn.Module):
     def __init__(self, data_dim, hidden_dim=128):
         super().__init__()
+        self.data_dim = data_dim
         self.net = nn.Sequential(nn.Linear(data_dim, hidden_dim),
                                  nn.LeakyReLU(0.2),
                                  nn.Linear(hidden_dim, hidden_dim),
