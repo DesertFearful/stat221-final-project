@@ -5,7 +5,14 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
 
-from experiment_2d_gaussian import make_correlated_gaussian_samples, make_dataloader, resolve_device, save_loss_plot
+from experiment_2d_gaussian import (
+    build_hidden_dims,
+    make_correlated_gaussian_samples,
+    make_dataloader,
+    resolve_device,
+    resolve_learning_rates,
+    save_loss_plot,
+)
 from src.baselines import fit_best_diagonal_gaussian_w2, sample_diagonal_gaussian, sample_product_of_marginals
 from src.model import Critic, FactorizedGenerator
 from src.ot_metrics import estimate_pot_wasserstein
@@ -165,18 +172,30 @@ def run_single_seed(args, seed, device, output_dir, artifact_prefix=None):
     eval_samples = make_correlated_gaussian_samples(args.eval_samples, args.rho, seed + 2)
     dataloader = make_dataloader(train_samples, args.batch_size, seed=seed)
 
-    generator = FactorizedGenerator(data_dim=2, latent_dim=args.latent_dim, hidden_dim=args.generator_hidden_dim)
-    critic = Critic(data_dim=2, hidden_dim=args.critic_hidden_dim, feature_map=args.critic_feature_map)
+    generator = FactorizedGenerator(
+        data_dim=2,
+        latent_dim=args.latent_dim,
+        hidden_dims=build_hidden_dims(args.generator_hidden_dim, args.generator_depth),
+        activation=args.generator_activation,
+    )
+    critic = Critic(
+        data_dim=2,
+        hidden_dims=build_hidden_dims(args.critic_hidden_dim, args.critic_depth),
+        feature_map=args.critic_feature_map,
+        activation=args.critic_activation,
+    )
     plot_w1 = artifact_prefix is not None and args.w1_eval_period > 0
     select_best_checkpoint = args.checkpoint_selection == "best_val_w1"
     track_w1 = select_best_checkpoint or plot_w1
+    lr_g, lr_c = resolve_learning_rates(args.lr, args.generator_lr, args.critic_lr)
     trainer = WGANTrainer(
         generator=generator,
         critic=critic,
         device=device,
-        lr=args.lr,
+        lr_g=lr_g,
+        lr_c=lr_c,
         n_critic=args.n_critic,
-        weight_clip=args.weight_clip,
+        gp_lambda=args.gp_lambda,
         optimizer_name=args.optimizer,
         adam_beta1=args.adam_beta1,
         adam_beta2=args.adam_beta2,
@@ -233,16 +252,22 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--num-epochs", type=int, default=200)
     parser.add_argument("--rho", type=float, default=0.8)
-    parser.add_argument("--latent-dim", type=int, default=1)
+    parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
+    parser.add_argument("--generator-depth", type=int, default=3)
+    parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-hidden-dim", type=int, default=64)
+    parser.add_argument("--critic-depth", type=int, default=2)
     parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="rmsprop")
+    parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--generator-lr", type=float)
+    parser.add_argument("--critic-lr", type=float)
+    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="adam")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
     parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--weight-clip", type=float, default=0.05)
+    parser.add_argument("--gp-lambda", type=float, default=10.0)
     parser.add_argument("--diag-fit-steps", type=int, default=1000)
     parser.add_argument("--diag-fit-lr", type=float, default=0.05)
     parser.add_argument("--ot-eval-samples", type=int, default=512)

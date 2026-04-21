@@ -1,0 +1,23 @@
+Best diagonal Gaussian
+  W1: 0.5290 +/- 0.0136
+  W2: 0.6687 +/- 0.0117
+  mean_error: 0.0892 +/- 0.0321
+  var_error: 0.2198 +/- 0.0472
+  corr: -0.0028 +/- 0.0040
+  num_seeds: 3
+
+WGAN
+  W1: 0.5349 +/- 0.0100
+  W2: 0.6639 +/- 0.0076
+  mean_error: 0.0614 +/- 0.0319
+  var_error: 0.2091 +/- 0.0191
+  corr: -0.0006 +/- 0.0062
+  num_seeds: 3
+
+Product marginals
+  W1: 0.5606 +/- 0.0146
+  W2: 0.7031 +/- 0.0194
+  mean_error: 0.0580 +/- 0.0166
+  var_error: 0.0279 +/- 0.0215
+  corr: -0.0070 +/- 0.0161
+  num_seeds: 3

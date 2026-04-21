@@ -6,9 +6,11 @@ import matplotlib.pyplot as plt
 import torch
 
 from experiment_2d_gaussian import (
+    build_hidden_dims,
     make_correlated_gaussian_samples,
     make_dataloader,
     resolve_device,
+    resolve_learning_rates,
     save_loss_plot,
     save_marginal_plot,
     save_scatter_plot,
@@ -94,9 +96,10 @@ def aggregate_results(per_seed_results):
 
     for optimizer in optimizers:
         optimizer_results = [result for result in per_seed_results if result["optimizer"] == optimizer]
-        for lr in sorted({result["lr"] for result in optimizer_results}):
-            group = [result for result in optimizer_results if result["lr"] == lr]
-            summary = {"optimizer": optimizer, "lr": lr, "num_seeds": len(group)}
+        lr_pairs = sorted({(result["lr_g"], result["lr_c"]) for result in optimizer_results})
+        for lr_g, lr_c in lr_pairs:
+            group = [result for result in optimizer_results if result["lr_g"] == lr_g and result["lr_c"] == lr_c]
+            summary = {"optimizer": optimizer, "lr_g": lr_g, "lr_c": lr_c, "num_seeds": len(group)}
 
             for metric in metrics:
                 values = torch.tensor([result[metric] for result in group], dtype=torch.float64)
@@ -108,7 +111,7 @@ def aggregate_results(per_seed_results):
     return aggregate
 
 
-# Plot the main sweep diagnostics on a log-LR axis, with one curve per optimizer.
+# Plot the main sweep diagnostics against the tested learning-rate pairs.
 def save_summary_curves(aggregate_results, output_path):
     metrics = [
         ("best_val_w1", "Best validation W1"),
@@ -126,15 +129,16 @@ def save_summary_curves(aggregate_results, output_path):
     for axis, (metric, title) in zip(axes, metrics):
         for optimizer in optimizers:
             rows = [row for row in aggregate_results if row["optimizer"] == optimizer]
-            rows.sort(key=lambda row: row["lr"])
-            lrs = [row["lr"] for row in rows]
+            rows.sort(key=lambda row: (row["lr_g"], row["lr_c"]))
+            x_positions = list(range(len(rows)))
+            labels = [f"g={row['lr_g']:.1e}\nc={row['lr_c']:.1e}" for row in rows]
             means = [row[f"{metric}_mean"] for row in rows]
             stds = [row[f"{metric}_std"] for row in rows]
-            axis.errorbar(lrs, means, yerr=stds, marker="o", capsize=4, label=optimizer)
+            axis.errorbar(x_positions, means, yerr=stds, marker="o", capsize=4, label=optimizer)
+            axis.set_xticks(x_positions, labels=labels)
 
-        axis.set_xscale("log")
         axis.set_title(title)
-        axis.set_xlabel("learning rate")
+        axis.set_xlabel("generator / critic learning rates")
         axis.grid(alpha=0.25)
 
     axes[0].legend()
@@ -152,12 +156,12 @@ def save_text_summary(aggregate_results, output_path):
         lines.append("")
 
         rows = [row for row in aggregate_results if row["optimizer"] == optimizer]
-        rows.sort(key=lambda row: row["lr"])
+        rows.sort(key=lambda row: (row["lr_g"], row["lr_c"]))
 
         for row in rows:
             lines.extend(
                 [
-                    f"lr = {row['lr']:.6g}",
+                    f"lr_g = {row['lr_g']:.6g}, lr_c = {row['lr_c']:.6g}",
                     f"  best_val_w1: {row['best_val_w1_mean']:.4f} +/- {row['best_val_w1_std']:.4f}",
                     f"  test_w1: {row['test_w1_mean']:.4f} +/- {row['test_w1_std']:.4f}",
                     f"  test_w2: {row['test_w2_mean']:.4f} +/- {row['test_w2_std']:.4f}",
@@ -173,23 +177,34 @@ def save_text_summary(aggregate_results, output_path):
     output_path.write_text("\n".join(lines).strip() + "\n")
 
 
-# Train one WGAN for one seed, one optimizer, and one learning rate.
-def run_single_seed(args, optimizer_name, lr, seed, device):
+# Train one WGAN for one seed, one optimizer, and one learning-rate pair.
+def run_single_seed(args, optimizer_name, lr_g, lr_c, seed, device):
     torch.manual_seed(seed)
     train_samples = make_correlated_gaussian_samples(args.train_samples, args.rho, seed)
     val_samples = make_correlated_gaussian_samples(args.val_samples, args.rho, seed + 1)
     eval_samples = make_correlated_gaussian_samples(args.eval_samples, args.rho, seed + 2)
     dataloader = make_dataloader(train_samples, args.batch_size, seed=seed)
 
-    generator = FactorizedGenerator(data_dim=2, latent_dim=args.latent_dim, hidden_dim=args.generator_hidden_dim)
-    critic = Critic(data_dim=2, hidden_dim=args.critic_hidden_dim, feature_map=args.critic_feature_map)
+    generator = FactorizedGenerator(
+        data_dim=2,
+        latent_dim=args.latent_dim,
+        hidden_dims=build_hidden_dims(args.generator_hidden_dim, args.generator_depth),
+        activation=args.generator_activation,
+    )
+    critic = Critic(
+        data_dim=2,
+        hidden_dims=build_hidden_dims(args.critic_hidden_dim, args.critic_depth),
+        feature_map=args.critic_feature_map,
+        activation=args.critic_activation,
+    )
     trainer = WGANTrainer(
         generator=generator,
         critic=critic,
         device=device,
-        lr=lr,
+        lr_g=lr_g,
+        lr_c=lr_c,
         n_critic=args.n_critic,
-        weight_clip=args.weight_clip,
+        gp_lambda=args.gp_lambda,
         optimizer_name=optimizer_name,
         adam_beta1=args.adam_beta1,
         adam_beta2=args.adam_beta2,
@@ -209,7 +224,8 @@ def run_single_seed(args, optimizer_name, lr, seed, device):
 
     metrics = compute_metrics(eval_samples, fake_samples, history, args.ot_eval_samples, seed)
     metrics["optimizer"] = optimizer_name
-    metrics["lr"] = lr
+    metrics["lr_g"] = lr_g
+    metrics["lr_c"] = lr_c
     metrics["seed"] = seed
     metrics["adam_beta1"] = args.adam_beta1 if optimizer_name == "adam" else float("nan")
     metrics["adam_beta2"] = args.adam_beta2 if optimizer_name == "adam" else float("nan")
@@ -231,17 +247,23 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--num-epochs", type=int, default=200)
     parser.add_argument("--rho", type=float, default=0.8)
-    parser.add_argument("--latent-dim", type=int, default=1)
+    parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
+    parser.add_argument("--generator-depth", type=int, default=3)
+    parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-hidden-dim", type=int, default=64)
+    parser.add_argument("--critic-depth", type=int, default=2)
     parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
+    parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
     parser.add_argument("--optimizer", choices=["rmsprop", "adam"])
     parser.add_argument("--optimizers", choices=["rmsprop", "adam"], nargs="+")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
     parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--weight-clip", type=float, default=0.05)
-    parser.add_argument("--learning-rates", type=float, nargs="+", default=[1e-5, 3e-5, 5e-5, 1e-4, 2e-4])
+    parser.add_argument("--gp-lambda", type=float, default=10.0)
+    parser.add_argument("--learning-rates", type=float, nargs="+")
+    parser.add_argument("--generator-learning-rates", type=float, nargs="+")
+    parser.add_argument("--critic-learning-rates", type=float, nargs="+")
     parser.add_argument("--w1-eval-period", type=int, default=10)
     parser.add_argument("--ot-eval-samples", type=int, default=512)
     parser.add_argument("--seed", type=int, default=0)
@@ -262,7 +284,16 @@ def main():
     if args.optimizer is not None and args.optimizers is not None:
         raise ValueError("Use either --optimizer or --optimizers, not both.")
 
-    lrs = sorted(set(args.learning_rates))
+    if args.learning_rates is not None and (
+        args.generator_learning_rates is not None or args.critic_learning_rates is not None
+    ):
+        raise ValueError("Use either --learning-rates or the pair --generator-learning-rates/--critic-learning-rates.")
+    if args.learning_rates is not None:
+        lr_pairs = [(lr, lr) for lr in sorted(set(args.learning_rates))]
+    else:
+        generator_lrs = sorted(set(args.generator_learning_rates or [resolve_learning_rates(None, None, None)[0]]))
+        critic_lrs = sorted(set(args.critic_learning_rates or [resolve_learning_rates(None, None, None)[1]]))
+        lr_pairs = [(lr_g, lr_c) for lr_g in generator_lrs for lr_c in critic_lrs]
     if args.optimizers is not None:
         optimizers = list(dict.fromkeys(args.optimizers))
     elif args.optimizer is not None:
@@ -274,21 +305,24 @@ def main():
 
     per_seed_results = []
     reference_seed = seeds[0]
-    total_runs = len(optimizers) * len(lrs) * len(seeds)
+    total_runs = len(optimizers) * len(lr_pairs) * len(seeds)
     run_index = 0
 
     for optimizer_name in optimizers:
         optimizer_dir = args.output_dir / optimizer_name
         optimizer_dir.mkdir(parents=True, exist_ok=True)
 
-        for lr in lrs:
-            lr_dir = optimizer_dir / f"lr_{lr_tag(lr)}"
+        for lr_g, lr_c in lr_pairs:
+            lr_dir = optimizer_dir / f"g_{lr_tag(lr_g)}_c_{lr_tag(lr_c)}"
             lr_dir.mkdir(parents=True, exist_ok=True)
 
             for seed in seeds:
                 run_index += 1
-                print(f"[{run_index}/{total_runs}] Running optimizer={optimizer_name}, lr={lr:.6g}, seed={seed}")
-                run = run_single_seed(args, optimizer_name, lr, seed, device)
+                print(
+                    f"[{run_index}/{total_runs}] Running optimizer={optimizer_name}, "
+                    f"lr_g={lr_g:.6g}, lr_c={lr_c:.6g}, seed={seed}"
+                )
+                run = run_single_seed(args, optimizer_name, lr_g, lr_c, seed, device)
                 metrics = run["metrics"]
                 per_seed_results.append(metrics)
 
@@ -310,7 +344,8 @@ def main():
                     torch.save(run["fake_samples"], lr_dir / "reference_generated_samples.pt")
 
                 print(
-                    f"[{run_index}/{total_runs}] Finished optimizer={optimizer_name}, lr={lr:.6g}, seed={seed} | "
+                    f"[{run_index}/{total_runs}] Finished optimizer={optimizer_name}, "
+                    f"lr_g={lr_g:.6g}, lr_c={lr_c:.6g}, seed={seed} | "
                     f"best_val_w1={metrics['best_val_w1']:.4f} | "
                     f"test_w1={metrics['test_w1']:.4f} | "
                     f"test_w2={metrics['test_w2']:.4f} | "
@@ -326,7 +361,7 @@ def main():
     print("Aggregate results:")
     for row in aggregate:
         print(
-            f"optimizer={row['optimizer']}, lr={row['lr']:.6g}: "
+            f"optimizer={row['optimizer']}, lr_g={row['lr_g']:.6g}, lr_c={row['lr_c']:.6g}: "
             f"best_val_w1={row['best_val_w1_mean']:.4f} +/- {row['best_val_w1_std']:.4f}, "
             f"test_w1={row['test_w1_mean']:.4f} +/- {row['test_w1_std']:.4f}, "
             f"test_w2={row['test_w2_mean']:.4f} +/- {row['test_w2_std']:.4f}, "

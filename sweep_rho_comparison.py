@@ -6,7 +6,14 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
 
-from experiment_2d_gaussian import make_correlated_gaussian_samples, make_dataloader, resolve_device, save_loss_plot
+from experiment_2d_gaussian import (
+    build_hidden_dims,
+    make_correlated_gaussian_samples,
+    make_dataloader,
+    resolve_device,
+    resolve_learning_rates,
+    save_loss_plot,
+)
 from src.baselines import fit_best_diagonal_gaussian_w2, sample_diagonal_gaussian, sample_product_of_marginals
 from src.model import Critic, FactorizedGenerator
 from src.ot_metrics import estimate_pot_wasserstein
@@ -366,19 +373,34 @@ def save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, outp
 def run_single_experiment(args, rho, seed, device):
     torch.manual_seed(seed)
     train_samples = make_correlated_gaussian_samples(args.train_samples, rho, seed)
-    eval_samples = make_correlated_gaussian_samples(args.eval_samples, rho, seed + 1)
+    val_samples = make_correlated_gaussian_samples(args.val_samples, rho, seed + 1)
+    eval_samples = make_correlated_gaussian_samples(args.eval_samples, rho, seed + 2)
     dataloader = make_dataloader(train_samples, args.batch_size, seed=seed)
 
-    generator = FactorizedGenerator(data_dim=2, latent_dim=args.latent_dim, hidden_dim=args.generator_hidden_dim)
-    critic = Critic(data_dim=2, hidden_dim=args.critic_hidden_dim, feature_map=args.critic_feature_map)
-    track_w1 = seed == args.reference_seed and args.w1_eval_period > 0
+    generator = FactorizedGenerator(
+        data_dim=2,
+        latent_dim=args.latent_dim,
+        hidden_dims=build_hidden_dims(args.generator_hidden_dim, args.generator_depth),
+        activation=args.generator_activation,
+    )
+    critic = Critic(
+        data_dim=2,
+        hidden_dims=build_hidden_dims(args.critic_hidden_dim, args.critic_depth),
+        feature_map=args.critic_feature_map,
+        activation=args.critic_activation,
+    )
+    plot_w1 = seed == args.reference_seed and args.w1_eval_period > 0
+    select_best_checkpoint = args.checkpoint_selection == "best_val_w1"
+    track_w1 = plot_w1 or select_best_checkpoint
+    lr_g, lr_c = resolve_learning_rates(args.lr, args.generator_lr, args.critic_lr)
     trainer = WGANTrainer(
         generator=generator,
         critic=critic,
         device=device,
-        lr=args.lr,
+        lr_g=lr_g,
+        lr_c=lr_c,
         n_critic=args.n_critic,
-        weight_clip=args.weight_clip,
+        gp_lambda=args.gp_lambda,
         optimizer_name=args.optimizer,
         adam_beta1=args.adam_beta1,
         adam_beta2=args.adam_beta2,
@@ -387,17 +409,18 @@ def run_single_experiment(args, rho, seed, device):
     history = trainer.fit(
         dataloader,
         args.num_epochs,
-        train_metric_samples=train_samples if track_w1 else None,
-        eval_metric_samples=eval_samples if track_w1 else None,
+        train_metric_samples=train_samples if plot_w1 else None,
+        eval_metric_samples=val_samples if track_w1 else None,
         metric_period=args.w1_eval_period if track_w1 else 0,
         metric_max_samples=args.ot_eval_samples,
         metric_seed=seed + int(round(1000 * (rho + 1.0))),
+        checkpoint_selection="best_eval_w1" if select_best_checkpoint else "last",
     )
-    wgan_samples = trainer.sample(args.eval_samples).cpu()
-    product_samples = sample_product_of_marginals(train_samples, args.eval_samples, seed=seed + 2).cpu()
+    wgan_samples = trainer.sample(args.eval_samples, seed=seed + 3).cpu()
+    product_samples = sample_product_of_marginals(train_samples, args.eval_samples, seed=seed + 4).cpu()
     diagonal_fit = fit_best_diagonal_gaussian_w2(train_samples, num_steps=args.diag_fit_steps, lr=args.diag_fit_lr)
     diagonal_samples = sample_diagonal_gaussian(
-        diagonal_fit["mean"], diagonal_fit["diag_vars"], args.eval_samples, seed=seed + 3
+        diagonal_fit["mean"], diagonal_fit["diag_vars"], args.eval_samples, seed=seed + 5
     ).cpu()
 
     generated_samples = {
@@ -438,20 +461,27 @@ def run_single_experiment(args, rho, seed, device):
 def parse_args():
     parser = argparse.ArgumentParser(description="Sweep rho and compare WGAN, product marginals, and the best diagonal Gaussian.")
     parser.add_argument("--train-samples", type=int, default=5000)
+    parser.add_argument("--val-samples", type=int, default=2000)
     parser.add_argument("--eval-samples", type=int, default=2000)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--num-epochs", type=int, default=200)
     parser.add_argument("--rhos", type=float, nargs="+", default=[0.0, 0.2, 0.4, 0.6, 0.8])
-    parser.add_argument("--latent-dim", type=int, default=1)
+    parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
+    parser.add_argument("--generator-depth", type=int, default=3)
+    parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-hidden-dim", type=int, default=64)
+    parser.add_argument("--critic-depth", type=int, default=2)
     parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="rmsprop")
+    parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--generator-lr", type=float)
+    parser.add_argument("--critic-lr", type=float)
+    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="adam")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
     parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--weight-clip", type=float, default=0.05)
+    parser.add_argument("--gp-lambda", type=float, default=10.0)
     parser.add_argument("--diag-fit-steps", type=int, default=1000)
     parser.add_argument("--diag-fit-lr", type=float, default=0.05)
     parser.add_argument("--ot-eval-samples", type=int, default=512)
@@ -459,6 +489,7 @@ def parse_args():
     parser.add_argument("--num-seeds", type=int, default=1)
     parser.add_argument("--seeds", type=int, nargs="+")
     parser.add_argument("--w1-eval-period", type=int, default=10)
+    parser.add_argument("--checkpoint-selection", choices=["last", "best_val_w1"], default="best_val_w1")
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/rho_comparison_sweep"))
     return parser.parse_args()

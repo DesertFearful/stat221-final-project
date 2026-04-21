@@ -6,9 +6,11 @@ import matplotlib.pyplot as plt
 import torch
 
 from experiment_2d_gaussian import (
+    build_hidden_dims,
     make_correlated_gaussian_samples,
     make_dataloader,
     resolve_device,
+    resolve_learning_rates,
     save_loss_plot,
     save_marginal_plot,
     save_scatter_plot,
@@ -51,6 +53,8 @@ def compute_metrics(real_samples, fake_samples, history, ot_eval_samples, ot_see
         "fake_corr": fake_corr.item(),
         "final_generator_loss": history["generator_loss"][-1],
         "final_critic_loss": history["critic_loss"][-1],
+        "selected_epoch": history.get("selected_epoch"),
+        "best_val_w1": history.get("best_eval_w1"),
         "w1": ot_metrics["w1"],
         "w2": ot_metrics["w2"],
     }
@@ -205,18 +209,26 @@ def save_summary_heatmaps(results, output_path):
 def parse_args():
     parser = argparse.ArgumentParser(description="Sweep critic depth and width for the 2D Gaussian WGAN experiment.")
     parser.add_argument("--n-samples", type=int, default=5000)
+    parser.add_argument("--val-samples", type=int, default=2000)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--num-epochs", type=int, default=200)
     parser.add_argument("--rho", type=float, default=0.8)
-    parser.add_argument("--latent-dim", type=int, default=1)
+    parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
+    parser.add_argument("--generator-depth", type=int, default=3)
+    parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="rmsprop")
+    parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--generator-lr", type=float)
+    parser.add_argument("--critic-lr", type=float)
+    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="adam")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
     parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--weight-clip", type=float, default=0.05)
+    parser.add_argument("--gp-lambda", type=float, default=10.0)
+    parser.add_argument("--w1-eval-period", type=int, default=10)
+    parser.add_argument("--checkpoint-selection", choices=["last", "best_val_w1"], default="best_val_w1")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/critic_architecture_sweep"))
@@ -229,9 +241,11 @@ def parse_args():
 def main():
     args = parse_args()
     device = resolve_device(args.device)
+    lr_g, lr_c = resolve_learning_rates(args.lr, args.generator_lr, args.critic_lr)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     real_samples = make_correlated_gaussian_samples(args.n_samples, args.rho, args.seed)
+    val_samples = make_correlated_gaussian_samples(args.val_samples, args.rho, args.seed + 1)
     torch.save(real_samples, args.output_dir / "real_samples.pt")
 
     results = []
@@ -249,21 +263,40 @@ def main():
 
             torch.manual_seed(args.seed)
             dataloader = make_dataloader(real_samples, args.batch_size, seed=args.seed)
-            generator = FactorizedGenerator(data_dim=2, latent_dim=args.latent_dim, hidden_dim=args.generator_hidden_dim)
-            critic = Critic(data_dim=2, hidden_dims=critic_hidden_dims(depth, width), feature_map=args.critic_feature_map)
+            generator = FactorizedGenerator(
+                data_dim=2,
+                latent_dim=args.latent_dim,
+                hidden_dims=build_hidden_dims(args.generator_hidden_dim, args.generator_depth),
+                activation=args.generator_activation,
+            )
+            critic = Critic(
+                data_dim=2,
+                hidden_dims=critic_hidden_dims(depth, width),
+                feature_map=args.critic_feature_map,
+                activation=args.critic_activation,
+            )
             trainer = WGANTrainer(
                 generator=generator,
                 critic=critic,
                 device=device,
-                lr=args.lr,
+                lr_g=lr_g,
+                lr_c=lr_c,
                 n_critic=args.n_critic,
-                weight_clip=args.weight_clip,
+                gp_lambda=args.gp_lambda,
                 optimizer_name=args.optimizer,
                 adam_beta1=args.adam_beta1,
                 adam_beta2=args.adam_beta2,
             )
 
-            history = trainer.fit(dataloader, args.num_epochs)
+            history = trainer.fit(
+                dataloader,
+                args.num_epochs,
+                eval_metric_samples=val_samples if args.w1_eval_period > 0 else None,
+                metric_period=args.w1_eval_period,
+                metric_max_samples=args.ot_eval_samples,
+                metric_seed=args.seed,
+                checkpoint_selection="best_eval_w1" if args.checkpoint_selection == "best_val_w1" else "last",
+            )
             fake_samples = trainer.sample(args.n_samples).cpu()
 
             torch.save(fake_samples, run_dir / "generated_samples.pt")
@@ -286,7 +319,7 @@ def main():
             )
             metrics["depth"] = depth
             metrics["width"] = width
-            metrics["weight_clip"] = args.weight_clip
+            metrics["gp_lambda"] = args.gp_lambda
             metrics["n_critic"] = args.n_critic
             metrics["run_dir"] = str(run_dir)
             results.append(metrics)
