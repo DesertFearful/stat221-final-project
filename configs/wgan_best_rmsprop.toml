@@ -1,0 +1,28 @@
+# Current best clipped-WGAN setup from the RMSprop weight-clipping experiments.
+
+[task]
+distribution = "correlated_gaussian_2d"
+rho = 0.8
+
+[generator]
+type = "factorized_mlp"
+data_dim = 2
+latent_dim = 1
+hidden_dim = 64
+
+[critic]
+type = "mlp"
+depth = 1
+hidden_dim = 64
+feature_map = "raw"
+
+[training]
+optimizer = "rmsprop"
+lr = 1e-4
+n_critic = 5
+weight_clip = 0.05
+batch_size = 256
+num_epochs = 200
+checkpoint_selection = "best_val_w1"
+w1_eval_period = 10
+w1_eval_samples = 512

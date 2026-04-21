@@ -31,17 +31,54 @@ class FactorizedGenerator(nn.Module):
     
 
 class Critic(nn.Module):
-    def __init__(self, data_dim, hidden_dim=128):
+    def __init__(self, data_dim, hidden_dim=64, hidden_dims=None, feature_map="raw"):
         super().__init__()
         self.data_dim = data_dim
-        self.net = nn.Sequential(nn.Linear(data_dim, hidden_dim),
-                                 nn.LeakyReLU(0.2),
-                                 nn.Linear(hidden_dim, hidden_dim),
-                                 nn.LeakyReLU(0.2),
-                                 nn.Linear(hidden_dim, 1))
+        self.feature_map = feature_map
+
+        if feature_map not in {"raw", "quadratic"}:
+            raise ValueError(f"Expected feature_map to be 'raw' or 'quadratic', got {feature_map}")
+
+        if hidden_dims is None:
+            hidden_dims = (hidden_dim,)
+
+        layers = []
+        in_dim = self.feature_dim()
+
+        for out_dim in hidden_dims:
+            layers.append(nn.Linear(in_dim, out_dim))
+            layers.append(nn.LeakyReLU(0.2))
+            in_dim = out_dim
+
+        layers.append(nn.Linear(in_dim, 1))
+        self.net = nn.Sequential(*layers)
+
+    def feature_dim(self):
+        if self.feature_map == "raw":
+            return self.data_dim
+
+        return 2 * self.data_dim + self.data_dim * (self.data_dim - 1) // 2
+
+    def make_features(self, x):
+        if self.feature_map == "raw":
+            return x
+
+        squared = x * x - 1.0
+        interactions = []
+
+        for i in range(self.data_dim):
+            for j in range(i + 1, self.data_dim):
+                interactions.append((x[:, i] * x[:, j]).unsqueeze(1))
+
+        if interactions:
+            interaction_features = torch.cat(interactions, dim=1)
+            return torch.cat([x, squared, interaction_features], dim=1)
+
+        return torch.cat([x, squared], dim=1)
 
     def forward(self, x):
         if x.ndim != 2 or x.shape[1] != self.data_dim:
             raise ValueError(f"Expected x to have shape (batch, {self.data_dim}), got {tuple(x.shape)}")
 
-        return self.net(x).squeeze(-1)
+        features = self.make_features(x)
+        return self.net(features).squeeze(-1)
