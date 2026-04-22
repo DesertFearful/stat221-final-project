@@ -10,15 +10,29 @@ from src.model import Critic, FactorizedGenerator
 from src.train_wgan import WGANTrainer
 
 
+DEFAULT_NUM_EPOCHS = 400
+DEFAULT_GENERATOR_LR = 1e-4
+DEFAULT_CRITIC_LR = 6e-4
+DEFAULT_N_CRITIC = 5
+DEFAULT_GP_LAMBDA = 1.0
+DEFAULT_CRITIC_FEATURE_MAP = "raw"
+
+
 # Choose a usable device while keeping the command-line interface simple.
 def resolve_device(device_name):
+    mps_is_available = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+
     if device_name == "auto":
         if torch.cuda.is_available():
             return "cuda"
+        if mps_is_available:
+            return "mps"
         return "cpu"
 
     if device_name == "cuda" and not torch.cuda.is_available():
         raise ValueError("CUDA was requested but is not available on this machine.")
+    if device_name == "mps" and not mps_is_available:
+        raise ValueError("MPS was requested but is not available on this machine.")
 
     return device_name
 
@@ -37,8 +51,8 @@ def resolve_learning_rates(shared_lr, generator_lr, critic_lr):
             raise ValueError("Use either --lr or the pair --generator-lr/--critic-lr, not both.")
         return shared_lr, shared_lr
 
-    lr_g = 2e-4 if generator_lr is None else generator_lr
-    lr_c = 6e-4 if critic_lr is None else critic_lr
+    lr_g = DEFAULT_GENERATOR_LR if generator_lr is None else generator_lr
+    lr_c = DEFAULT_CRITIC_LR if critic_lr is None else critic_lr
     return lr_g, lr_c
 
 
@@ -207,7 +221,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train a WGAN on a correlated 2D Gaussian.")
     parser.add_argument("--n-samples", type=int, default=5000)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--num-epochs", type=int, default=200)
+    parser.add_argument("--num-epochs", type=int, default=DEFAULT_NUM_EPOCHS)
     parser.add_argument("--rho", type=float, default=0.8)
     parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
@@ -215,7 +229,7 @@ def parse_args():
     parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-hidden-dim", type=int, default=64)
     parser.add_argument("--critic-depth", type=int, default=2)
-    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
+    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default=DEFAULT_CRITIC_FEATURE_MAP)
     parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
     parser.add_argument("--lr", type=float)
     parser.add_argument("--generator-lr", type=float)
@@ -223,13 +237,13 @@ def parse_args():
     parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="adam")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
-    parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--gp-lambda", type=float, default=10.0)
+    parser.add_argument("--n-critic", type=int, default=DEFAULT_N_CRITIC)
+    parser.add_argument("--gp-lambda", type=float, default=DEFAULT_GP_LAMBDA)
     parser.add_argument("--w1-eval-period", type=int, default=10)
     parser.add_argument("--w1-eval-samples", type=int, default=512)
     parser.add_argument("--checkpoint-selection", choices=["last", "best_val_w1"], default="best_val_w1")
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/gaussian_2d"))
     return parser.parse_args()
 

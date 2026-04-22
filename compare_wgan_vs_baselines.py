@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import torch
 
 from experiment_2d_gaussian import (
+    DEFAULT_CRITIC_FEATURE_MAP,
+    DEFAULT_GP_LAMBDA,
+    DEFAULT_N_CRITIC,
+    DEFAULT_NUM_EPOCHS,
     build_hidden_dims,
     make_correlated_gaussian_samples,
     make_dataloader,
@@ -250,7 +254,7 @@ def parse_args():
     parser.add_argument("--val-samples", type=int, default=2000)
     parser.add_argument("--eval-samples", type=int, default=2000)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--num-epochs", type=int, default=200)
+    parser.add_argument("--num-epochs", type=int, default=DEFAULT_NUM_EPOCHS)
     parser.add_argument("--rho", type=float, default=0.8)
     parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
@@ -258,7 +262,7 @@ def parse_args():
     parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-hidden-dim", type=int, default=64)
     parser.add_argument("--critic-depth", type=int, default=2)
-    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
+    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default=DEFAULT_CRITIC_FEATURE_MAP)
     parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
     parser.add_argument("--lr", type=float)
     parser.add_argument("--generator-lr", type=float)
@@ -266,8 +270,8 @@ def parse_args():
     parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="adam")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
-    parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--gp-lambda", type=float, default=10.0)
+    parser.add_argument("--n-critic", type=int, default=DEFAULT_N_CRITIC)
+    parser.add_argument("--gp-lambda", type=float, default=DEFAULT_GP_LAMBDA)
     parser.add_argument("--diag-fit-steps", type=int, default=1000)
     parser.add_argument("--diag-fit-lr", type=float, default=0.05)
     parser.add_argument("--ot-eval-samples", type=int, default=512)
@@ -276,7 +280,7 @@ def parse_args():
     parser.add_argument("--seeds", type=int, nargs="+")
     parser.add_argument("--w1-eval-period", type=int, default=10)
     parser.add_argument("--checkpoint-selection", choices=["last", "best_val_w1"], default="best_val_w1")
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/wgan_baseline_comparison"))
     return parser.parse_args()
 

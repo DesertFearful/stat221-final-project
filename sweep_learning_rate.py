@@ -269,7 +269,7 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--num-seeds", type=int, default=10)
     parser.add_argument("--seeds", type=int, nargs="+")
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/learning_rate_sweep"))
     return parser.parse_args()
 

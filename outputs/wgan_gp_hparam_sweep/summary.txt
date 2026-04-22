@@ -1,0 +1,131 @@
+gp_lambda = 1, n_critic = 10
+  best_val_w1: 0.1907 +/- 0.0162
+  selected_val_w1: 0.1907 +/- 0.0162
+  test_w1: 0.2132 +/- 0.0220
+  test_w2: 0.2707 +/- 0.0188
+  mean_error: 0.0843 +/- 0.0374
+  var_error: 0.0833 +/- 0.0561
+  fake_corr: 0.0062 +/- 0.0187
+  selected_epoch: 154.0 +/- 37.5
+  num_seeds: 10
+
+gp_lambda = 2, n_critic = 5
+  best_val_w1: 0.1989 +/- 0.0115
+  selected_val_w1: 0.1989 +/- 0.0115
+  test_w1: 0.2210 +/- 0.0259
+  test_w2: 0.2760 +/- 0.0244
+  mean_error: 0.0935 +/- 0.0541
+  var_error: 0.0608 +/- 0.0331
+  fake_corr: -0.0004 +/- 0.0263
+  selected_epoch: 134.0 +/- 52.6
+  num_seeds: 10
+
+gp_lambda = 1, n_critic = 5
+  best_val_w1: 0.1925 +/- 0.0185
+  selected_val_w1: 0.1925 +/- 0.0185
+  test_w1: 0.2266 +/- 0.0277
+  test_w2: 0.2826 +/- 0.0293
+  mean_error: 0.0846 +/- 0.0441
+  var_error: 0.0570 +/- 0.0486
+  fake_corr: -0.0033 +/- 0.0233
+  selected_epoch: 133.0 +/- 46.1
+  num_seeds: 10
+
+gp_lambda = 2, n_critic = 10
+  best_val_w1: 0.1908 +/- 0.0128
+  selected_val_w1: 0.1908 +/- 0.0128
+  test_w1: 0.2293 +/- 0.0189
+  test_w2: 0.2897 +/- 0.0291
+  mean_error: 0.1070 +/- 0.0395
+  var_error: 0.0964 +/- 0.0340
+  fake_corr: 0.0052 +/- 0.0193
+  selected_epoch: 138.0 +/- 33.4
+  num_seeds: 10
+
+gp_lambda = 5, n_critic = 10
+  best_val_w1: 0.2246 +/- 0.0223
+  selected_val_w1: 0.2246 +/- 0.0223
+  test_w1: 0.2483 +/- 0.0453
+  test_w2: 0.3190 +/- 0.0419
+  mean_error: 0.1051 +/- 0.0671
+  var_error: 0.1222 +/- 0.0393
+  fake_corr: 0.0046 +/- 0.0182
+  selected_epoch: 178.0 +/- 27.9
+  num_seeds: 10
+
+gp_lambda = 5, n_critic = 5
+  best_val_w1: 0.2344 +/- 0.0261
+  selected_val_w1: 0.2344 +/- 0.0261
+  test_w1: 0.2611 +/- 0.0357
+  test_w2: 0.3310 +/- 0.0354
+  mean_error: 0.1034 +/- 0.0663
+  var_error: 0.1146 +/- 0.0960
+  fake_corr: -0.0014 +/- 0.0304
+  selected_epoch: 148.0 +/- 31.6
+  num_seeds: 10
+
+gp_lambda = 10, n_critic = 5
+  best_val_w1: 0.2528 +/- 0.0302
+  selected_val_w1: 0.2528 +/- 0.0302
+  test_w1: 0.2737 +/- 0.0413
+  test_w2: 0.3421 +/- 0.0491
+  mean_error: 0.1483 +/- 0.0518
+  var_error: 0.1420 +/- 0.0750
+  fake_corr: -0.0018 +/- 0.0305
+  selected_epoch: 140.0 +/- 36.1
+  num_seeds: 10
+
+gp_lambda = 10, n_critic = 10
+  best_val_w1: 0.2559 +/- 0.0326
+  selected_val_w1: 0.2559 +/- 0.0326
+  test_w1: 0.2868 +/- 0.0412
+  test_w2: 0.3611 +/- 0.0392
+  mean_error: 0.0920 +/- 0.0557
+  var_error: 0.2058 +/- 0.0915
+  fake_corr: 0.0027 +/- 0.0217
+  selected_epoch: 132.0 +/- 11.7
+  num_seeds: 10
+
+gp_lambda = 1, n_critic = 1
+  best_val_w1: 0.2752 +/- 0.0307
+  selected_val_w1: 0.2752 +/- 0.0307
+  test_w1: 0.3226 +/- 0.0653
+  test_w2: 0.3872 +/- 0.0712
+  mean_error: 0.2517 +/- 0.0748
+  var_error: 0.1218 +/- 0.0521
+  fake_corr: -0.0012 +/- 0.0390
+  selected_epoch: 83.0 +/- 42.4
+  num_seeds: 10
+
+gp_lambda = 2, n_critic = 1
+  best_val_w1: 0.2980 +/- 0.0500
+  selected_val_w1: 0.2980 +/- 0.0500
+  test_w1: 0.3627 +/- 0.0862
+  test_w2: 0.4278 +/- 0.0786
+  mean_error: 0.2965 +/- 0.1073
+  var_error: 0.1311 +/- 0.1205
+  fake_corr: 0.0002 +/- 0.0393
+  selected_epoch: 62.0 +/- 24.4
+  num_seeds: 10
+
+gp_lambda = 5, n_critic = 1
+  best_val_w1: 0.4454 +/- 0.1353
+  selected_val_w1: 0.4454 +/- 0.1353
+  test_w1: 0.4780 +/- 0.1418
+  test_w2: 0.5657 +/- 0.1499
+  mean_error: 0.3568 +/- 0.1459
+  var_error: 0.2775 +/- 0.2120
+  fake_corr: -0.0038 +/- 0.0350
+  selected_epoch: 104.0 +/- 43.2
+  num_seeds: 10
+
+gp_lambda = 10, n_critic = 1
+  best_val_w1: 0.5521 +/- 0.1617
+  selected_val_w1: 0.5521 +/- 0.1617
+  test_w1: 0.5565 +/- 0.1746
+  test_w2: 0.6722 +/- 0.2162
+  mean_error: 0.4196 +/- 0.1561
+  var_error: 0.3674 +/- 0.2599
+  fake_corr: -0.0047 +/- 0.0281
+  selected_epoch: 76.0 +/- 28.4
+  num_seeds: 10

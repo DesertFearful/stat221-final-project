@@ -230,7 +230,7 @@ def parse_args():
     parser.add_argument("--w1-eval-period", type=int, default=10)
     parser.add_argument("--checkpoint-selection", choices=["last", "best_val_w1"], default="best_val_w1")
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/critic_architecture_sweep"))
     parser.add_argument("--depths", type=int, nargs="+", default=[0, 1, 2])
     parser.add_argument("--widths", type=int, nargs="+", default=[32, 64, 128])
