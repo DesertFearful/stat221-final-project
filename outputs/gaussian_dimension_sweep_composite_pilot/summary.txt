@@ -1,0 +1,149 @@
+p = 10
+  rho = 0.50
+    Best diagonal Gaussian
+      W1: 2.4155 +/- 0.0294
+      W2: 2.5687 +/- 0.0409
+      mean_error: 0.1071 +/- 0.0127
+      diag_var_error: 0.2507 +/- 0.0037
+      offdiag_cov_error: 0.5074 +/- 0.0113
+      cov_fro_error: 4.8854 +/- 0.1081
+      avg_abs_corr: 0.0181 +/- 0.0003
+    Product marginals
+      W1: 2.5703 +/- 0.0410
+      W2: 2.7013 +/- 0.0530
+      mean_error: 0.0950 +/- 0.0127
+      diag_var_error: 0.0315 +/- 0.0086
+      offdiag_cov_error: 0.5085 +/- 0.0104
+      cov_fro_error: 4.8326 +/- 0.0983
+      avg_abs_corr: 0.0173 +/- 0.0019
+    WGAN
+      W1: 2.4311 +/- 0.0515
+      W2: 2.5836 +/- 0.0730
+      mean_error: 0.1076 +/- 0.0194
+      diag_var_error: 0.2545 +/- 0.0432
+      offdiag_cov_error: 0.5062 +/- 0.0117
+      cov_fro_error: 4.8843 +/- 0.1256
+      avg_abs_corr: 0.0175 +/- 0.0006
+    WGAN checkpointing
+      selected_epoch: 116.7 +/- 11.8
+      selected_eval_w1: 2.3962 +/- 0.0682
+      selected_eval_mean_error: 0.0946 +/- 0.0193
+      selected_eval_diag_var_error: 0.2730 +/- 0.0153
+      selected_checkpoint_score: 2.6787 +/- 0.0529
+    Paired transport gaps
+      product - best diagonal (W1): 0.1548 +/- 0.0195
+      product - best diagonal (W2): 0.1326 +/- 0.0252
+      WGAN - best diagonal (W1): 0.0156 +/- 0.0295
+      WGAN - best diagonal (W2): 0.0148 +/- 0.0345
+
+  rho = 0.80
+    Best diagonal Gaussian
+      W1: 2.3918 +/- 0.0484
+      W2: 2.6473 +/- 0.0664
+      mean_error: 0.0898 +/- 0.0074
+      diag_var_error: 0.5388 +/- 0.0129
+      offdiag_cov_error: 0.8140 +/- 0.0187
+      cov_fro_error: 7.9096 +/- 0.1817
+      avg_abs_corr: 0.0181 +/- 0.0003
+    Product marginals
+      W1: 2.8688 +/- 0.0090
+      W2: 3.0434 +/- 0.0214
+      mean_error: 0.0872 +/- 0.0127
+      diag_var_error: 0.0286 +/- 0.0067
+      offdiag_cov_error: 0.8138 +/- 0.0178
+      cov_fro_error: 7.7241 +/- 0.1684
+      avg_abs_corr: 0.0174 +/- 0.0015
+    WGAN
+      W1: 2.5462 +/- 0.0951
+      W2: 2.7856 +/- 0.0552
+      mean_error: 0.2424 +/- 0.1048
+      diag_var_error: 0.3816 +/- 0.1285
+      offdiag_cov_error: 0.8133 +/- 0.0188
+      cov_fro_error: 7.8264 +/- 0.2363
+      avg_abs_corr: 0.0176 +/- 0.0006
+    WGAN checkpointing
+      selected_epoch: 100.0 +/- 20.4
+      selected_eval_w1: 2.5755 +/- 0.2008
+      selected_eval_mean_error: 0.2679 +/- 0.1064
+      selected_eval_diag_var_error: 0.3917 +/- 0.0950
+      selected_checkpoint_score: 2.9940 +/- 0.0978
+    Paired transport gaps
+      product - best diagonal (W1): 0.4770 +/- 0.0426
+      product - best diagonal (W2): 0.3961 +/- 0.0495
+      WGAN - best diagonal (W1): 0.1544 +/- 0.1272
+      WGAN - best diagonal (W2): 0.1383 +/- 0.1135
+
+p = 20
+  rho = 0.50
+    Best diagonal Gaussian
+      W1: 4.1080 +/- 0.0396
+      W2: 4.2638 +/- 0.0538
+      mean_error: 0.1283 +/- 0.0079
+      diag_var_error: 0.3102 +/- 0.0106
+      offdiag_cov_error: 0.5067 +/- 0.0090
+      cov_fro_error: 9.9889 +/- 0.1791
+      avg_abs_corr: 0.0183 +/- 0.0008
+    Product marginals
+      W1: 4.4613 +/- 0.0484
+      W2: 4.5997 +/- 0.0563
+      mean_error: 0.1332 +/- 0.0102
+      diag_var_error: 0.0393 +/- 0.0013
+      offdiag_cov_error: 0.5069 +/- 0.0100
+      cov_fro_error: 9.9010 +/- 0.1954
+      avg_abs_corr: 0.0182 +/- 0.0007
+    WGAN
+      W1: 3.9271 +/- 0.2114
+      W2: 4.1433 +/- 0.1545
+      mean_error: 0.2684 +/- 0.0672
+      diag_var_error: 0.6459 +/- 0.2271
+      offdiag_cov_error: 0.5079 +/- 0.0102
+      cov_fro_error: 10.3864 +/- 0.1384
+      avg_abs_corr: 0.0187 +/- 0.0008
+    WGAN checkpointing
+      selected_epoch: 58.3 +/- 11.8
+      selected_eval_w1: 3.9342 +/- 0.3164
+      selected_eval_mean_error: 0.3314 +/- 0.1576
+      selected_eval_diag_var_error: 0.6589 +/- 0.2337
+      selected_checkpoint_score: 4.6262 +/- 0.0945
+    Paired transport gaps
+      product - best diagonal (W1): 0.3533 +/- 0.0088
+      product - best diagonal (W2): 0.3359 +/- 0.0133
+      WGAN - best diagonal (W1): -0.1809 +/- 0.2454
+      WGAN - best diagonal (W2): -0.1205 +/- 0.2078
+
+  rho = 0.80
+    Best diagonal Gaussian
+      W1: 3.8862 +/- 0.0973
+      W2: 4.2605 +/- 0.0885
+      mean_error: 0.0991 +/- 0.0058
+      diag_var_error: 0.6236 +/- 0.0133
+      offdiag_cov_error: 0.8179 +/- 0.0135
+      cov_fro_error: 16.1890 +/- 0.2699
+      avg_abs_corr: 0.0183 +/- 0.0008
+    Product marginals
+      W1: 4.7462 +/- 0.0511
+      W2: 4.9694 +/- 0.0566
+      mean_error: 0.1165 +/- 0.0034
+      diag_var_error: 0.0375 +/- 0.0014
+      offdiag_cov_error: 0.8174 +/- 0.0143
+      cov_fro_error: 15.9429 +/- 0.2786
+      avg_abs_corr: 0.0175 +/- 0.0003
+    WGAN
+      W1: 4.0330 +/- 0.0785
+      W2: 4.4165 +/- 0.0875
+      mean_error: 0.5365 +/- 0.3613
+      diag_var_error: 0.6159 +/- 0.0336
+      offdiag_cov_error: 0.8182 +/- 0.0143
+      cov_fro_error: 16.2204 +/- 0.2962
+      avg_abs_corr: 0.0187 +/- 0.0013
+    WGAN checkpointing
+      selected_epoch: 75.0 +/- 0.0
+      selected_eval_w1: 4.0970 +/- 0.0715
+      selected_eval_mean_error: 0.5685 +/- 0.2640
+      selected_eval_diag_var_error: 0.6277 +/- 0.0066
+      selected_checkpoint_score: 4.7816 +/- 0.0765
+    Paired transport gaps
+      product - best diagonal (W1): 0.8600 +/- 0.0478
+      product - best diagonal (W2): 0.7089 +/- 0.0330
+      WGAN - best diagonal (W1): 0.1468 +/- 0.0535
+      WGAN - best diagonal (W2): 0.1560 +/- 0.0494

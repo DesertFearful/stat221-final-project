@@ -1,0 +1,253 @@
+p = 10
+  rho = 0.50
+    Best diagonal Gaussian
+      W1: 2.4155 +/- 0.0294
+      W2: 2.5687 +/- 0.0409
+      mean_error: 0.1071 +/- 0.0127
+      diag_var_error: 0.2507 +/- 0.0037
+      candidate_diag_var_mean: 0.7566 +/- 0.0085
+      theoretical_diag_var: 0.7585
+      candidate_minus_theoretical_diag_var: -0.0019 +/- 0.0085
+      offdiag_cov_error: 0.5074 +/- 0.0113
+      cov_fro_error: 4.8854 +/- 0.1081
+      avg_abs_corr: 0.0181 +/- 0.0003
+    Best W1 diagonal Gaussian
+      W1: 2.2912 +/- 0.0164
+      W2: 2.5014 +/- 0.0151
+      mean_error: 0.0860 +/- 0.0045
+      diag_var_error: 0.7003 +/- 0.0331
+      candidate_diag_var_mean: 0.3070 +/- 0.0250
+      theoretical_diag_var: 0.7585
+      candidate_minus_theoretical_diag_var: -0.4515 +/- 0.0250
+      offdiag_cov_error: 0.5087 +/- 0.0118
+      cov_fro_error: 5.3146 +/- 0.1446
+      avg_abs_corr: 0.0184 +/- 0.0002
+    Product marginals
+      W1: 2.5703 +/- 0.0410
+      W2: 2.7013 +/- 0.0530
+      mean_error: 0.0950 +/- 0.0127
+      diag_var_error: 0.0315 +/- 0.0086
+      candidate_diag_var_mean: 1.0059 +/- 0.0050
+      theoretical_diag_var: 0.7585
+      candidate_minus_theoretical_diag_var: 0.2474 +/- 0.0050
+      offdiag_cov_error: 0.5085 +/- 0.0104
+      cov_fro_error: 4.8326 +/- 0.0983
+      avg_abs_corr: 0.0173 +/- 0.0019
+    WGAN
+      W1: 2.3281 +/- 0.0113
+      W2: 2.5033 +/- 0.0373
+      mean_error: 0.1562 +/- 0.0415
+      diag_var_error: 0.4786 +/- 0.0217
+      candidate_diag_var_mean: 0.5287 +/- 0.0119
+      theoretical_diag_var: 0.7585
+      candidate_minus_theoretical_diag_var: -0.2298 +/- 0.0119
+      offdiag_cov_error: 0.5073 +/- 0.0115
+      cov_fro_error: 5.0521 +/- 0.1244
+      avg_abs_corr: 0.0171 +/- 0.0006
+    WGAN checkpointing
+      selected_epoch: 108.3 +/- 23.6
+      selected_eval_w1: 2.2863 +/- 0.0275
+      selected_eval_mean_error: 0.1325 +/- 0.0374
+      selected_eval_diag_var_error: 0.4894 +/- 0.0045
+      selected_checkpoint_score: 2.7890 +/- 0.0356
+    Paired transport gaps
+      product - best diagonal (W1): 0.1548 +/- 0.0195
+      product - best diagonal (W2): 0.1326 +/- 0.0252
+      W1 diagonal - best diagonal (W1): -0.1243 +/- 0.0356
+      W1 diagonal - best diagonal (W2): -0.0674 +/- 0.0261
+      product - W1 diagonal (W1): 0.2791 +/- 0.0520
+      product - W1 diagonal (W2): 0.1999 +/- 0.0420
+      WGAN - best diagonal (W1): -0.0874 +/- 0.0181
+      WGAN - best diagonal (W2): -0.0654 +/- 0.0085
+      WGAN - W1 diagonal (W1): 0.0369 +/- 0.0218
+      WGAN - W1 diagonal (W2): 0.0019 +/- 0.0238
+
+  rho = 0.80
+    Best diagonal Gaussian
+      W1: 2.3918 +/- 0.0484
+      W2: 2.6473 +/- 0.0664
+      mean_error: 0.0898 +/- 0.0074
+      diag_var_error: 0.5388 +/- 0.0129
+      candidate_diag_var_mean: 0.4753 +/- 0.0062
+      theoretical_diag_var: 0.4745
+      candidate_minus_theoretical_diag_var: 0.0008 +/- 0.0062
+      offdiag_cov_error: 0.8140 +/- 0.0187
+      cov_fro_error: 7.9096 +/- 0.1817
+      avg_abs_corr: 0.0181 +/- 0.0003
+    Best W1 diagonal Gaussian
+      W1: 2.2891 +/- 0.0686
+      W2: 2.6476 +/- 0.0753
+      mean_error: 0.0684 +/- 0.0097
+      diag_var_error: 0.8372 +/- 0.0268
+      candidate_diag_var_mean: 0.1770 +/- 0.0117
+      theoretical_diag_var: 0.4745
+      candidate_minus_theoretical_diag_var: -0.2975 +/- 0.0117
+      offdiag_cov_error: 0.8148 +/- 0.0188
+      cov_fro_error: 8.1724 +/- 0.1930
+      avg_abs_corr: 0.0184 +/- 0.0002
+    Product marginals
+      W1: 2.8688 +/- 0.0090
+      W2: 3.0434 +/- 0.0214
+      mean_error: 0.0872 +/- 0.0127
+      diag_var_error: 0.0286 +/- 0.0067
+      candidate_diag_var_mean: 1.0117 +/- 0.0079
+      theoretical_diag_var: 0.4745
+      candidate_minus_theoretical_diag_var: 0.5372 +/- 0.0079
+      offdiag_cov_error: 0.8138 +/- 0.0178
+      cov_fro_error: 7.7241 +/- 0.1684
+      avg_abs_corr: 0.0174 +/- 0.0015
+    WGAN
+      W1: 2.2827 +/- 0.0382
+      W2: 2.6202 +/- 0.0323
+      mean_error: 0.0942 +/- 0.0145
+      diag_var_error: 0.7855 +/- 0.0177
+      candidate_diag_var_mean: 0.2287 +/- 0.0340
+      theoretical_diag_var: 0.4745
+      candidate_minus_theoretical_diag_var: -0.2458 +/- 0.0340
+      offdiag_cov_error: 0.8140 +/- 0.0188
+      cov_fro_error: 8.1141 +/- 0.1579
+      avg_abs_corr: 0.0170 +/- 0.0003
+    WGAN checkpointing
+      selected_epoch: 108.3 +/- 31.2
+      selected_eval_w1: 2.3209 +/- 0.1297
+      selected_eval_mean_error: 0.1045 +/- 0.0343
+      selected_eval_diag_var_error: 0.8028 +/- 0.0624
+      selected_checkpoint_score: 3.1342 +/- 0.1807
+    Paired transport gaps
+      product - best diagonal (W1): 0.4770 +/- 0.0426
+      product - best diagonal (W2): 0.3961 +/- 0.0495
+      W1 diagonal - best diagonal (W1): -0.1027 +/- 0.0306
+      W1 diagonal - best diagonal (W2): 0.0002 +/- 0.0302
+      product - W1 diagonal (W1): 0.5796 +/- 0.0658
+      product - W1 diagonal (W2): 0.3959 +/- 0.0655
+      WGAN - best diagonal (W1): -0.1091 +/- 0.0143
+      WGAN - best diagonal (W2): -0.0271 +/- 0.0345
+      WGAN - W1 diagonal (W1): -0.0064 +/- 0.0316
+      WGAN - W1 diagonal (W2): -0.0273 +/- 0.0453
+
+p = 20
+  rho = 0.50
+    Best diagonal Gaussian
+      W1: 4.1080 +/- 0.0396
+      W2: 4.2638 +/- 0.0538
+      mean_error: 0.1283 +/- 0.0079
+      diag_var_error: 0.3102 +/- 0.0106
+      candidate_diag_var_mean: 0.6961 +/- 0.0042
+      theoretical_diag_var: 0.6952
+      candidate_minus_theoretical_diag_var: 0.0009 +/- 0.0042
+      offdiag_cov_error: 0.5067 +/- 0.0090
+      cov_fro_error: 9.9889 +/- 0.1791
+      avg_abs_corr: 0.0183 +/- 0.0008
+    Best W1 diagonal Gaussian
+      W1: 3.7392 +/- 0.0589
+      W2: 3.9832 +/- 0.0657
+      mean_error: 0.1060 +/- 0.0110
+      diag_var_error: 0.8319 +/- 0.0105
+      candidate_diag_var_mean: 0.1744 +/- 0.0084
+      theoretical_diag_var: 0.6952
+      candidate_minus_theoretical_diag_var: -0.5208 +/- 0.0084
+      offdiag_cov_error: 0.5071 +/- 0.0094
+      cov_fro_error: 10.5707 +/- 0.1808
+      avg_abs_corr: 0.0179 +/- 0.0007
+    Product marginals
+      W1: 4.4613 +/- 0.0484
+      W2: 4.5997 +/- 0.0563
+      mean_error: 0.1332 +/- 0.0102
+      diag_var_error: 0.0393 +/- 0.0013
+      candidate_diag_var_mean: 1.0092 +/- 0.0107
+      theoretical_diag_var: 0.6952
+      candidate_minus_theoretical_diag_var: 0.3140 +/- 0.0107
+      offdiag_cov_error: 0.5069 +/- 0.0100
+      cov_fro_error: 9.9010 +/- 0.1954
+      avg_abs_corr: 0.0182 +/- 0.0007
+    WGAN
+      W1: 3.9126 +/- 0.0537
+      W2: 4.1036 +/- 0.0599
+      mean_error: 0.2616 +/- 0.0872
+      diag_var_error: 0.4989 +/- 0.0126
+      candidate_diag_var_mean: 0.5074 +/- 0.0123
+      theoretical_diag_var: 0.6952
+      candidate_minus_theoretical_diag_var: -0.1878 +/- 0.0123
+      offdiag_cov_error: 0.5076 +/- 0.0094
+      cov_fro_error: 10.1544 +/- 0.1820
+      avg_abs_corr: 0.0175 +/- 0.0010
+    WGAN checkpointing
+      selected_epoch: 125.0 +/- 20.4
+      selected_eval_w1: 3.8953 +/- 0.0703
+      selected_eval_mean_error: 0.1730 +/- 0.0267
+      selected_eval_diag_var_error: 0.5015 +/- 0.0178
+      selected_checkpoint_score: 4.4141 +/- 0.0691
+    Paired transport gaps
+      product - best diagonal (W1): 0.3533 +/- 0.0088
+      product - best diagonal (W2): 0.3359 +/- 0.0133
+      W1 diagonal - best diagonal (W1): -0.3689 +/- 0.0249
+      W1 diagonal - best diagonal (W2): -0.2806 +/- 0.0256
+      product - W1 diagonal (W1): 0.7222 +/- 0.0201
+      product - W1 diagonal (W2): 0.6165 +/- 0.0129
+      WGAN - best diagonal (W1): -0.1954 +/- 0.0193
+      WGAN - best diagonal (W2): -0.1602 +/- 0.0294
+      WGAN - W1 diagonal (W1): 0.1735 +/- 0.0056
+      WGAN - W1 diagonal (W2): 0.1204 +/- 0.0099
+
+  rho = 0.80
+    Best diagonal Gaussian
+      W1: 3.8862 +/- 0.0973
+      W2: 4.2605 +/- 0.0885
+      mean_error: 0.0991 +/- 0.0058
+      diag_var_error: 0.6236 +/- 0.0133
+      candidate_diag_var_mean: 0.3941 +/- 0.0014
+      theoretical_diag_var: 0.3920
+      candidate_minus_theoretical_diag_var: 0.0021 +/- 0.0014
+      offdiag_cov_error: 0.8179 +/- 0.0135
+      cov_fro_error: 16.1890 +/- 0.2699
+      avg_abs_corr: 0.0183 +/- 0.0008
+    Best W1 diagonal Gaussian
+      W1: 3.6493 +/- 0.1076
+      W2: 4.1553 +/- 0.0877
+      mean_error: 0.0793 +/- 0.0047
+      diag_var_error: 0.9097 +/- 0.0146
+      candidate_diag_var_mean: 0.1080 +/- 0.0038
+      theoretical_diag_var: 0.3920
+      candidate_minus_theoretical_diag_var: -0.2840 +/- 0.0038
+      offdiag_cov_error: 0.8181 +/- 0.0138
+      cov_fro_error: 16.4607 +/- 0.2756
+      avg_abs_corr: 0.0179 +/- 0.0007
+    Product marginals
+      W1: 4.7462 +/- 0.0511
+      W2: 4.9694 +/- 0.0566
+      mean_error: 0.1165 +/- 0.0034
+      diag_var_error: 0.0375 +/- 0.0014
+      candidate_diag_var_mean: 1.0188 +/- 0.0101
+      theoretical_diag_var: 0.3920
+      candidate_minus_theoretical_diag_var: 0.6268 +/- 0.0101
+      offdiag_cov_error: 0.8174 +/- 0.0143
+      cov_fro_error: 15.9429 +/- 0.2786
+      avg_abs_corr: 0.0175 +/- 0.0003
+    WGAN
+      W1: 3.7222 +/- 0.1049
+      W2: 4.1718 +/- 0.0933
+      mean_error: 0.0914 +/- 0.0168
+      diag_var_error: 0.7849 +/- 0.0349
+      candidate_diag_var_mean: 0.2328 +/- 0.0213
+      theoretical_diag_var: 0.3920
+      candidate_minus_theoretical_diag_var: -0.1592 +/- 0.0213
+      offdiag_cov_error: 0.8182 +/- 0.0138
+      cov_fro_error: 16.3342 +/- 0.2960
+      avg_abs_corr: 0.0179 +/- 0.0012
+    WGAN checkpointing
+      selected_epoch: 141.7 +/- 11.8
+      selected_eval_w1: 3.8447 +/- 0.0805
+      selected_eval_mean_error: 0.1647 +/- 0.0631
+      selected_eval_diag_var_error: 0.7967 +/- 0.0070
+      selected_checkpoint_score: 4.6579 +/- 0.0740
+    Paired transport gaps
+      product - best diagonal (W1): 0.8600 +/- 0.0478
+      product - best diagonal (W2): 0.7089 +/- 0.0330
+      W1 diagonal - best diagonal (W1): -0.2369 +/- 0.0192
+      W1 diagonal - best diagonal (W2): -0.1053 +/- 0.0087
+      product - W1 diagonal (W1): 1.0969 +/- 0.0565
+      product - W1 diagonal (W2): 0.8141 +/- 0.0311
+      WGAN - best diagonal (W1): -0.1640 +/- 0.0246
+      WGAN - best diagonal (W2): -0.0887 +/- 0.0107
+      WGAN - W1 diagonal (W1): 0.0729 +/- 0.0082
+      WGAN - W1 diagonal (W2): 0.0166 +/- 0.0056

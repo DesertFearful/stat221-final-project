@@ -1,0 +1,26 @@
+Product marginals
+  W1: 1.0794
+  W2: 1.1570
+  mean_error: 0.0662
+  diag_var_error: 0.0485
+  offdiag_cov_error: 0.1950
+  cov_fro_error: 0.8848
+  avg_abs_corr: 0.0205
+
+Best diagonal Gaussian
+  W1: 1.1211
+  W2: 1.2261
+  mean_error: 0.1025
+  diag_var_error: 0.0389
+  offdiag_cov_error: 0.1747
+  cov_fro_error: 0.7968
+  avg_abs_corr: 0.0129
+
+WGAN
+  W1: 1.2856
+  W2: 1.4010
+  mean_error: 0.1683
+  diag_var_error: 0.6990
+  offdiag_cov_error: 0.1778
+  cov_fro_error: 1.7616
+  avg_abs_corr: 0.0157

@@ -6,7 +6,18 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
 
-from experiment_2d_gaussian import make_correlated_gaussian_samples, make_dataloader, resolve_device, save_loss_plot
+from experiment_2d_gaussian import (
+    DEFAULT_CRITIC_FEATURE_MAP,
+    DEFAULT_GP_LAMBDA,
+    DEFAULT_N_CRITIC,
+    DEFAULT_NUM_EPOCHS,
+    build_hidden_dims,
+    make_correlated_gaussian_samples,
+    make_dataloader,
+    resolve_device,
+    resolve_learning_rates,
+    save_loss_plot,
+)
 from src.baselines import fit_best_diagonal_gaussian_w2, sample_diagonal_gaussian, sample_product_of_marginals
 from src.model import Critic, FactorizedGenerator
 from src.ot_metrics import estimate_pot_wasserstein
@@ -149,6 +160,33 @@ def aggregate_diagonal_results(diagonal_results):
     return aggregate
 
 
+# Track how the learned WGAN coordinate variances change with dependence strength.
+def aggregate_wgan_variance_results(wgan_variance_results):
+    metrics = ["wgan_var_1", "wgan_var_2", "wgan_var_mean"]
+    grouped = {}
+
+    for result in wgan_variance_results:
+        grouped.setdefault(result["rho"], []).append(result)
+
+    aggregate = []
+    for rho in sorted(grouped):
+        group = grouped[rho]
+        summary = {
+            "rho": rho,
+            "num_seeds": len(group),
+            "theoretical_diag_var": group[0]["theoretical_diag_var"],
+        }
+
+        for metric in metrics:
+            values = torch.tensor([item[metric] for item in group], dtype=torch.float64)
+            summary[f"{metric}_mean"] = values.mean().item()
+            summary[f"{metric}_std"] = values.std(unbiased=False).item()
+
+        aggregate.append(summary)
+
+    return aggregate
+
+
 # Compare methods on the same seed so the gap curves are paired and easier to trust.
 def compute_gap_results(per_seed_results):
     grouped = {}
@@ -248,7 +286,31 @@ def save_summary_curves(aggregate_results, output_path):
     plt.close(figure)
 
 
-# Show the learned diagonal variances against the closed-form Gaussian benchmark.
+# Show the learned WGAN variances against the closed-form Gaussian benchmark.
+def save_wgan_variance_plot(wgan_variance_aggregate, output_path):
+    rho_values = [row["rho"] for row in wgan_variance_aggregate]
+    var1 = [row["wgan_var_1_mean"] for row in wgan_variance_aggregate]
+    var1_std = [row["wgan_var_1_std"] for row in wgan_variance_aggregate]
+    var2 = [row["wgan_var_2_mean"] for row in wgan_variance_aggregate]
+    var2_std = [row["wgan_var_2_std"] for row in wgan_variance_aggregate]
+    theory = [row["theoretical_diag_var"] for row in wgan_variance_aggregate]
+
+    figure, axis = plt.subplots(figsize=(8, 5))
+    axis.errorbar(rho_values, var1, yerr=var1_std, marker="o", capsize=4, label="WGAN variance x1", color="tab:blue")
+    axis.errorbar(rho_values, var2, yerr=var2_std, marker="s", capsize=4, label="WGAN variance x2", color="tab:cyan")
+    axis.plot(rho_values, theory, linestyle="--", color="black", label="Theoretical optimum")
+    axis.axhline(1.0, linestyle=":", color="gray", label="Product marginals variance")
+    axis.set_title("WGAN variance vs rho")
+    axis.set_xlabel("rho")
+    axis.set_ylabel("variance")
+    axis.grid(alpha=0.25)
+    axis.legend()
+    figure.tight_layout()
+    figure.savefig(output_path, dpi=200)
+    plt.close(figure)
+
+
+# Keep the original diagonal-benchmark variance plot as a separate diagnostic.
 def save_diagonal_variance_plot(diagonal_aggregate, output_path):
     rho_values = [row["rho"] for row in diagonal_aggregate]
     var1 = [row["diag_var_1_mean"] for row in diagonal_aggregate]
@@ -318,7 +380,7 @@ def save_gap_plot(gap_aggregate, output_path):
 
 
 # Write a readable text summary that matches the CSV outputs.
-def save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, output_path):
+def save_summary_text(aggregate_results, wgan_variance_aggregate, diagonal_aggregate, gap_aggregate, output_path):
     lines = []
     rho_values = sorted({row["rho"] for row in aggregate_results})
 
@@ -341,10 +403,15 @@ def save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, outp
                 ]
             )
 
+        wgan_variance_row = [row for row in wgan_variance_aggregate if row["rho"] == rho][0]
         diagonal_row = [row for row in diagonal_aggregate if row["rho"] == rho][0]
         gap_row = [row for row in gap_aggregate if row["rho"] == rho][0]
         lines.extend(
             [
+                "  WGAN variance fit",
+                f"    x1 variance: {wgan_variance_row['wgan_var_1_mean']:.4f} +/- {wgan_variance_row['wgan_var_1_std']:.4f}",
+                f"    x2 variance: {wgan_variance_row['wgan_var_2_mean']:.4f} +/- {wgan_variance_row['wgan_var_2_std']:.4f}",
+                f"    theoretical variance: {wgan_variance_row['theoretical_diag_var']:.4f}",
                 "  Diagonal Gaussian fit",
                 f"    x1 variance: {diagonal_row['diag_var_1_mean']:.4f} +/- {diagonal_row['diag_var_1_std']:.4f}",
                 f"    x2 variance: {diagonal_row['diag_var_2_mean']:.4f} +/- {diagonal_row['diag_var_2_std']:.4f}",
@@ -366,19 +433,34 @@ def save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, outp
 def run_single_experiment(args, rho, seed, device):
     torch.manual_seed(seed)
     train_samples = make_correlated_gaussian_samples(args.train_samples, rho, seed)
-    eval_samples = make_correlated_gaussian_samples(args.eval_samples, rho, seed + 1)
+    val_samples = make_correlated_gaussian_samples(args.val_samples, rho, seed + 1)
+    eval_samples = make_correlated_gaussian_samples(args.eval_samples, rho, seed + 2)
     dataloader = make_dataloader(train_samples, args.batch_size, seed=seed)
 
-    generator = FactorizedGenerator(data_dim=2, latent_dim=args.latent_dim, hidden_dim=args.generator_hidden_dim)
-    critic = Critic(data_dim=2, hidden_dim=args.critic_hidden_dim, feature_map=args.critic_feature_map)
-    track_w1 = seed == args.reference_seed and args.w1_eval_period > 0
+    generator = FactorizedGenerator(
+        data_dim=2,
+        latent_dim=args.latent_dim,
+        hidden_dims=build_hidden_dims(args.generator_hidden_dim, args.generator_depth),
+        activation=args.generator_activation,
+    )
+    critic = Critic(
+        data_dim=2,
+        hidden_dims=build_hidden_dims(args.critic_hidden_dim, args.critic_depth),
+        feature_map=args.critic_feature_map,
+        activation=args.critic_activation,
+    )
+    plot_w1 = seed == args.reference_seed and args.w1_eval_period > 0
+    select_best_checkpoint = args.checkpoint_selection == "best_val_w1"
+    track_w1 = plot_w1 or select_best_checkpoint
+    lr_g, lr_c = resolve_learning_rates(args.lr, args.generator_lr, args.critic_lr)
     trainer = WGANTrainer(
         generator=generator,
         critic=critic,
         device=device,
-        lr=args.lr,
+        lr_g=lr_g,
+        lr_c=lr_c,
         n_critic=args.n_critic,
-        weight_clip=args.weight_clip,
+        gp_lambda=args.gp_lambda,
         optimizer_name=args.optimizer,
         adam_beta1=args.adam_beta1,
         adam_beta2=args.adam_beta2,
@@ -387,17 +469,18 @@ def run_single_experiment(args, rho, seed, device):
     history = trainer.fit(
         dataloader,
         args.num_epochs,
-        train_metric_samples=train_samples if track_w1 else None,
-        eval_metric_samples=eval_samples if track_w1 else None,
+        train_metric_samples=train_samples if plot_w1 else None,
+        eval_metric_samples=val_samples if track_w1 else None,
         metric_period=args.w1_eval_period if track_w1 else 0,
         metric_max_samples=args.ot_eval_samples,
         metric_seed=seed + int(round(1000 * (rho + 1.0))),
+        checkpoint_selection="best_eval_w1" if select_best_checkpoint else "last",
     )
-    wgan_samples = trainer.sample(args.eval_samples).cpu()
-    product_samples = sample_product_of_marginals(train_samples, args.eval_samples, seed=seed + 2).cpu()
+    wgan_samples = trainer.sample(args.eval_samples, seed=seed + 3).cpu()
+    product_samples = sample_product_of_marginals(train_samples, args.eval_samples, seed=seed + 4).cpu()
     diagonal_fit = fit_best_diagonal_gaussian_w2(train_samples, num_steps=args.diag_fit_steps, lr=args.diag_fit_lr)
     diagonal_samples = sample_diagonal_gaussian(
-        diagonal_fit["mean"], diagonal_fit["diag_vars"], args.eval_samples, seed=seed + 3
+        diagonal_fit["mean"], diagonal_fit["diag_vars"], args.eval_samples, seed=seed + 5
     ).cpu()
 
     generated_samples = {
@@ -415,6 +498,16 @@ def run_single_experiment(args, rho, seed, device):
         metrics["method"] = method_name
         results.append(metrics)
 
+    wgan_covariance = torch.cov(wgan_samples.T)
+    wgan_variance_result = {
+        "rho": rho,
+        "seed": seed,
+        "wgan_var_1": wgan_covariance[0, 0].item(),
+        "wgan_var_2": wgan_covariance[1, 1].item(),
+        "wgan_var_mean": 0.5 * (wgan_covariance[0, 0].item() + wgan_covariance[1, 1].item()),
+        "theoretical_diag_var": theoretical_diagonal_variance(rho),
+    }
+
     diag_vars = diagonal_fit["diag_vars"].cpu()
     diagonal_result = {
         "rho": rho,
@@ -428,6 +521,7 @@ def run_single_experiment(args, rho, seed, device):
 
     return {
         "results": results,
+        "wgan_variance_result": wgan_variance_result,
         "diagonal_result": diagonal_result,
         "history": history,
         "eval_samples": eval_samples,
@@ -438,20 +532,27 @@ def run_single_experiment(args, rho, seed, device):
 def parse_args():
     parser = argparse.ArgumentParser(description="Sweep rho and compare WGAN, product marginals, and the best diagonal Gaussian.")
     parser.add_argument("--train-samples", type=int, default=5000)
+    parser.add_argument("--val-samples", type=int, default=2000)
     parser.add_argument("--eval-samples", type=int, default=2000)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--num-epochs", type=int, default=200)
+    parser.add_argument("--num-epochs", type=int, default=DEFAULT_NUM_EPOCHS)
     parser.add_argument("--rhos", type=float, nargs="+", default=[0.0, 0.2, 0.4, 0.6, 0.8])
-    parser.add_argument("--latent-dim", type=int, default=1)
+    parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
+    parser.add_argument("--generator-depth", type=int, default=3)
+    parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-hidden-dim", type=int, default=64)
-    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="rmsprop")
+    parser.add_argument("--critic-depth", type=int, default=2)
+    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default=DEFAULT_CRITIC_FEATURE_MAP)
+    parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--generator-lr", type=float)
+    parser.add_argument("--critic-lr", type=float)
+    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="adam")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
-    parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--weight-clip", type=float, default=0.05)
+    parser.add_argument("--n-critic", type=int, default=DEFAULT_N_CRITIC)
+    parser.add_argument("--gp-lambda", type=float, default=DEFAULT_GP_LAMBDA)
     parser.add_argument("--diag-fit-steps", type=int, default=1000)
     parser.add_argument("--diag-fit-lr", type=float, default=0.05)
     parser.add_argument("--ot-eval-samples", type=int, default=512)
@@ -459,7 +560,8 @@ def parse_args():
     parser.add_argument("--num-seeds", type=int, default=1)
     parser.add_argument("--seeds", type=int, nargs="+")
     parser.add_argument("--w1-eval-period", type=int, default=10)
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--checkpoint-selection", choices=["last", "best_val_w1"], default="best_val_w1")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/rho_comparison_sweep"))
     return parser.parse_args()
 
@@ -475,6 +577,7 @@ def main():
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     per_seed_results = []
+    wgan_variance_results = []
     diagonal_results = []
     reference_seed = seeds[0]
     args.reference_seed = reference_seed
@@ -484,6 +587,7 @@ def main():
             print(f"Running rho={rho:.3f}, seed={seed}")
             experiment = run_single_experiment(args, rho, seed, device)
             per_seed_results.extend(experiment["results"])
+            wgan_variance_results.append(experiment["wgan_variance_result"])
             diagonal_results.append(experiment["diagonal_result"])
 
             if seed == reference_seed:
@@ -507,18 +611,28 @@ def main():
     aggregate_results = aggregate_method_results(per_seed_results)
     gap_results = compute_gap_results(per_seed_results)
     gap_aggregate = aggregate_gap_results(gap_results)
+    wgan_variance_aggregate = aggregate_wgan_variance_results(wgan_variance_results)
     diagonal_aggregate = aggregate_diagonal_results(diagonal_results)
 
     save_results_csv(per_seed_results, args.output_dir / "per_seed_results.csv")
     save_results_csv(aggregate_results, args.output_dir / "aggregate_results.csv")
+    save_results_csv(wgan_variance_results, args.output_dir / "wgan_variance_per_seed.csv")
+    save_results_csv(wgan_variance_aggregate, args.output_dir / "wgan_variance_aggregate.csv")
     save_results_csv(diagonal_results, args.output_dir / "diagonal_fit_per_seed.csv")
     save_results_csv(diagonal_aggregate, args.output_dir / "diagonal_fit_aggregate.csv")
     save_results_csv(gap_results, args.output_dir / "paired_gap_per_seed.csv")
     save_results_csv(gap_aggregate, args.output_dir / "paired_gap_aggregate.csv")
     save_summary_curves(aggregate_results, args.output_dir / "summary_curves.png")
-    save_diagonal_variance_plot(diagonal_aggregate, args.output_dir / "diag_variance_vs_rho.png")
+    save_wgan_variance_plot(wgan_variance_aggregate, args.output_dir / "diag_variance_vs_rho.png")
+    save_diagonal_variance_plot(diagonal_aggregate, args.output_dir / "diagonal_benchmark_variance_vs_rho.png")
     save_gap_plot(gap_aggregate, args.output_dir / "gap_vs_rho.png")
-    save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, args.output_dir / "summary.txt")
+    save_summary_text(
+        aggregate_results,
+        wgan_variance_aggregate,
+        diagonal_aggregate,
+        gap_aggregate,
+        args.output_dir / "summary.txt",
+    )
 
     print(f"Finished. Sweep outputs saved to {args.output_dir}")
 

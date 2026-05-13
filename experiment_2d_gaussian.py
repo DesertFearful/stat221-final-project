@@ -10,31 +10,79 @@ from src.model import Critic, FactorizedGenerator
 from src.train_wgan import WGANTrainer
 
 
+DEFAULT_NUM_EPOCHS = 400
+DEFAULT_GENERATOR_LR = 1e-4
+DEFAULT_CRITIC_LR = 6e-4
+DEFAULT_N_CRITIC = 5
+DEFAULT_GP_LAMBDA = 1.0
+DEFAULT_CRITIC_FEATURE_MAP = "raw"
+
+
 # Choose a usable device while keeping the command-line interface simple.
 def resolve_device(device_name):
+    mps_is_available = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+
     if device_name == "auto":
         if torch.cuda.is_available():
             return "cuda"
+        if mps_is_available:
+            return "mps"
         return "cpu"
 
     if device_name == "cuda" and not torch.cuda.is_available():
         raise ValueError("CUDA was requested but is not available on this machine.")
+    if device_name == "mps" and not mps_is_available:
+        raise ValueError("MPS was requested but is not available on this machine.")
 
     return device_name
 
 
-# Sample from a centered correlated Gaussian in R^2.
-def make_correlated_gaussian_samples(n_samples, rho, seed):
+def build_hidden_dims(width, depth):
+    if depth < 0:
+        raise ValueError(f"Expected depth to be nonnegative, got {depth}")
+    if width < 1:
+        raise ValueError(f"Expected width to be positive, got {width}")
+    return tuple(width for _ in range(depth))
+
+
+def resolve_learning_rates(shared_lr, generator_lr, critic_lr):
+    if shared_lr is not None:
+        if generator_lr is not None or critic_lr is not None:
+            raise ValueError("Use either --lr or the pair --generator-lr/--critic-lr, not both.")
+        return shared_lr, shared_lr
+
+    lr_g = DEFAULT_GENERATOR_LR if generator_lr is None else generator_lr
+    lr_c = DEFAULT_CRITIC_LR if critic_lr is None else critic_lr
+    return lr_g, lr_c
+
+
+# Sample from a centered equicorrelated Gaussian in R^p.
+def make_equicorrelated_gaussian_samples(n_samples, data_dim, rho, seed):
     if n_samples < 1:
         raise ValueError(f"Expected n_samples to be positive, got {n_samples}")
+    if data_dim < 1:
+        raise ValueError(f"Expected data_dim to be positive, got {data_dim}")
     if abs(rho) >= 1:
         raise ValueError(f"Expected |rho| < 1, got {rho}")
 
-    covariance = torch.tensor([[1.0, rho], [rho, 1.0]], dtype=torch.float32)
+    lower_bound = -1.0 / max(data_dim - 1, 1)
+    if rho <= lower_bound:
+        raise ValueError(
+            f"Expected rho > {-1.0 / max(data_dim - 1, 1):.4f} for a positive definite "
+            f"equicorrelation matrix in dimension {data_dim}, got {rho}"
+        )
+
+    covariance = (1.0 - rho) * torch.eye(data_dim, dtype=torch.float32)
+    covariance = covariance + rho * torch.ones((data_dim, data_dim), dtype=torch.float32)
     chol = torch.linalg.cholesky(covariance)
     generator = torch.Generator().manual_seed(seed)
-    z = torch.randn(n_samples, 2, generator=generator)
+    z = torch.randn(n_samples, data_dim, generator=generator)
     return z @ chol.T
+
+
+# Backward-compatible wrapper for the original 2D experiment.
+def make_correlated_gaussian_samples(n_samples, rho, seed):
+    return make_equicorrelated_gaussian_samples(n_samples, data_dim=2, rho=rho, seed=seed)
 
 
 # Wrap the synthetic samples in a shuffled dataloader.
@@ -111,8 +159,10 @@ def save_loss_plot(history, output_path):
 
     loss_axis.plot(epochs, history["generator_loss"], label="generator")
     loss_axis.plot(epochs, history["critic_loss"], label="critic")
+    if "gradient_penalty" in history:
+        loss_axis.plot(epochs, history["gradient_penalty"], label="gradient penalty")
     selected_epoch = None
-    if history.get("checkpoint_selection") == "best_eval_w1":
+    if history.get("checkpoint_selection") in {"best_eval_w1", "best_eval_composite"}:
         selected_epoch = history.get("selected_epoch")
     if selected_epoch is not None:
         loss_axis.axvline(selected_epoch, color="black", linestyle="--", alpha=0.5, label="selected checkpoint")
@@ -186,23 +236,29 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train a WGAN on a correlated 2D Gaussian.")
     parser.add_argument("--n-samples", type=int, default=5000)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--num-epochs", type=int, default=200)
+    parser.add_argument("--num-epochs", type=int, default=DEFAULT_NUM_EPOCHS)
     parser.add_argument("--rho", type=float, default=0.8)
-    parser.add_argument("--latent-dim", type=int, default=1)
+    parser.add_argument("--latent-dim", type=int, default=4)
     parser.add_argument("--generator-hidden-dim", type=int, default=64)
+    parser.add_argument("--generator-depth", type=int, default=3)
+    parser.add_argument("--generator-activation", choices=["relu", "silu", "gelu"], default="silu")
     parser.add_argument("--critic-hidden-dim", type=int, default=64)
-    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default="raw")
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="rmsprop")
+    parser.add_argument("--critic-depth", type=int, default=2)
+    parser.add_argument("--critic-feature-map", choices=["raw", "quadratic"], default=DEFAULT_CRITIC_FEATURE_MAP)
+    parser.add_argument("--critic-activation", choices=["relu", "silu", "gelu", "leaky_relu"], default="leaky_relu")
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--generator-lr", type=float)
+    parser.add_argument("--critic-lr", type=float)
+    parser.add_argument("--optimizer", choices=["rmsprop", "adam"], default="adam")
     parser.add_argument("--adam-beta1", type=float, default=0.0)
     parser.add_argument("--adam-beta2", type=float, default=0.9)
-    parser.add_argument("--n-critic", type=int, default=5)
-    parser.add_argument("--weight-clip", type=float, default=0.05)
+    parser.add_argument("--n-critic", type=int, default=DEFAULT_N_CRITIC)
+    parser.add_argument("--gp-lambda", type=float, default=DEFAULT_GP_LAMBDA)
     parser.add_argument("--w1-eval-period", type=int, default=10)
     parser.add_argument("--w1-eval-samples", type=int, default=512)
     parser.add_argument("--checkpoint-selection", choices=["last", "best_val_w1"], default="best_val_w1")
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/gaussian_2d"))
     return parser.parse_args()
 
@@ -210,6 +266,7 @@ def parse_args():
 def main():
     args = parse_args()
     device = resolve_device(args.device)
+    lr_g, lr_c = resolve_learning_rates(args.lr, args.generator_lr, args.critic_lr)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     torch.manual_seed(args.seed)
@@ -217,15 +274,26 @@ def main():
     val_samples = make_correlated_gaussian_samples(args.n_samples, args.rho, args.seed + 1)
     dataloader = make_dataloader(real_samples, args.batch_size)
 
-    generator = FactorizedGenerator(data_dim=2, latent_dim=args.latent_dim, hidden_dim=args.generator_hidden_dim)
-    critic = Critic(data_dim=2, hidden_dim=args.critic_hidden_dim, feature_map=args.critic_feature_map)
+    generator = FactorizedGenerator(
+        data_dim=2,
+        latent_dim=args.latent_dim,
+        hidden_dims=build_hidden_dims(args.generator_hidden_dim, args.generator_depth),
+        activation=args.generator_activation,
+    )
+    critic = Critic(
+        data_dim=2,
+        hidden_dims=build_hidden_dims(args.critic_hidden_dim, args.critic_depth),
+        feature_map=args.critic_feature_map,
+        activation=args.critic_activation,
+    )
     trainer = WGANTrainer(
         generator=generator,
         critic=critic,
         device=device,
-        lr=args.lr,
+        lr_g=lr_g,
+        lr_c=lr_c,
         n_critic=args.n_critic,
-        weight_clip=args.weight_clip,
+        gp_lambda=args.gp_lambda,
         optimizer_name=args.optimizer,
         adam_beta1=args.adam_beta1,
         adam_beta2=args.adam_beta2,

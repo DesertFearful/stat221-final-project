@@ -1,0 +1,26 @@
+WGAN
+  W1: 0.3323
+  W2: 0.4661
+  mean_error: 0.0736
+  diag_var_error: 0.1413
+  offdiag_cov_error: 0.4777
+  cov_fro_error: 0.7064
+  avg_abs_corr: 0.0140
+
+Best diagonal Gaussian
+  W1: 0.3590
+  W2: 0.4894
+  mean_error: 0.0492
+  diag_var_error: 0.1069
+  offdiag_cov_error: 0.4911
+  cov_fro_error: 0.7114
+  avg_abs_corr: 0.0018
+
+Product marginals
+  W1: 0.3961
+  W2: 0.5623
+  mean_error: 0.0859
+  diag_var_error: 0.0320
+  offdiag_cov_error: 0.4690
+  cov_fro_error: 0.6650
+  avg_abs_corr: 0.0205
