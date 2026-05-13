@@ -1,149 +1,169 @@
 rho = 0.000
   Best diagonal Gaussian
-    W1: 0.1975 +/- 0.0200
-    W2: 0.2539 +/- 0.0224
-    mean_error: 0.0502 +/- 0.0223
-    var_error: 0.0432 +/- 0.0245
-    corr: -0.0029 +/- 0.0215
+    W1: 0.1986 +/- 0.0208
+    W2: 0.2574 +/- 0.0240
+    mean_error: 0.0468 +/- 0.0242
+    var_error: 0.0402 +/- 0.0200
+    corr: 0.0011 +/- 0.0199
   Product marginals
-    W1: 0.1999 +/- 0.0137
-    W2: 0.2579 +/- 0.0179
-    mean_error: 0.0581 +/- 0.0312
-    var_error: 0.0421 +/- 0.0252
-    corr: 0.0023 +/- 0.0259
+    W1: 0.2046 +/- 0.0183
+    W2: 0.2624 +/- 0.0199
+    mean_error: 0.0510 +/- 0.0267
+    var_error: 0.0423 +/- 0.0235
+    corr: 0.0017 +/- 0.0243
   WGAN
-    W1: 0.2222 +/- 0.0391
-    W2: 0.2798 +/- 0.0391
-    mean_error: 0.0977 +/- 0.0509
-    var_error: 0.0609 +/- 0.0433
-    corr: -0.0036 +/- 0.0231
-  Diagonal Gaussian fit
-    x1 variance: 1.0004 +/- 0.0203
-    x2 variance: 0.9917 +/- 0.0168
+    W1: 0.2198 +/- 0.0345
+    W2: 0.2790 +/- 0.0365
+    mean_error: 0.0823 +/- 0.0457
+    var_error: 0.0736 +/- 0.0545
+    corr: -0.0045 +/- 0.0206
+  WGAN variance fit
+    x1 variance: 0.9910 +/- 0.0891
+    x2 variance: 0.9696 +/- 0.0972
     theoretical variance: 1.0000
-    Gaussian W2: 0.0052 +/- 0.0049
+  Diagonal Gaussian fit
+    x1 variance: 1.0034 +/- 0.0200
+    x2 variance: 0.9919 +/- 0.0184
+    theoretical variance: 1.0000
+    Gaussian W2: 0.0053 +/- 0.0048
   Paired transport gaps
-    product - best diagonal (W1): 0.0024 +/- 0.0198
-    product - best diagonal (W2): 0.0040 +/- 0.0233
-    WGAN - best diagonal (W1): 0.0247 +/- 0.0356
-    WGAN - best diagonal (W2): 0.0260 +/- 0.0373
+    product - best diagonal (W1): 0.0059 +/- 0.0246
+    product - best diagonal (W2): 0.0051 +/- 0.0261
+    WGAN - best diagonal (W1): 0.0212 +/- 0.0341
+    WGAN - best diagonal (W2): 0.0217 +/- 0.0360
 
 rho = 0.200
   Best diagonal Gaussian
-    W1: 0.2270 +/- 0.0234
-    W2: 0.2907 +/- 0.0291
-    mean_error: 0.0501 +/- 0.0226
-    var_error: 0.0464 +/- 0.0233
-    corr: -0.0029 +/- 0.0215
+    W1: 0.2229 +/- 0.0234
+    W2: 0.2875 +/- 0.0261
+    mean_error: 0.0465 +/- 0.0249
+    var_error: 0.0422 +/- 0.0192
+    corr: 0.0011 +/- 0.0199
   Product marginals
-    W1: 0.2380 +/- 0.0268
-    W2: 0.3067 +/- 0.0333
-    mean_error: 0.0579 +/- 0.0318
-    var_error: 0.0427 +/- 0.0243
-    corr: 0.0024 +/- 0.0268
+    W1: 0.2293 +/- 0.0232
+    W2: 0.2959 +/- 0.0271
+    mean_error: 0.0508 +/- 0.0266
+    var_error: 0.0430 +/- 0.0223
+    corr: 0.0014 +/- 0.0245
   WGAN
-    W1: 0.2311 +/- 0.0233
-    W2: 0.2991 +/- 0.0288
-    mean_error: 0.0638 +/- 0.0292
-    var_error: 0.0628 +/- 0.0393
-    corr: -0.0006 +/- 0.0245
-  Diagonal Gaussian fit
-    x1 variance: 0.9903 +/- 0.0202
-    x2 variance: 0.9818 +/- 0.0170
+    W1: 0.2285 +/- 0.0225
+    W2: 0.2935 +/- 0.0277
+    mean_error: 0.0553 +/- 0.0265
+    var_error: 0.0597 +/- 0.0324
+    corr: -0.0034 +/- 0.0215
+  WGAN variance fit
+    x1 variance: 0.9750 +/- 0.0716
+    x2 variance: 0.9826 +/- 0.0605
     theoretical variance: 0.9899
-    Gaussian W2: 0.1424 +/- 0.0069
+  Diagonal Gaussian fit
+    x1 variance: 0.9934 +/- 0.0200
+    x2 variance: 0.9817 +/- 0.0186
+    theoretical variance: 0.9899
+    Gaussian W2: 0.1418 +/- 0.0069
   Paired transport gaps
-    product - best diagonal (W1): 0.0111 +/- 0.0282
-    product - best diagonal (W2): 0.0160 +/- 0.0359
-    WGAN - best diagonal (W1): 0.0041 +/- 0.0302
-    WGAN - best diagonal (W2): 0.0083 +/- 0.0383
+    product - best diagonal (W1): 0.0064 +/- 0.0255
+    product - best diagonal (W2): 0.0084 +/- 0.0307
+    WGAN - best diagonal (W1): 0.0056 +/- 0.0288
+    WGAN - best diagonal (W2): 0.0060 +/- 0.0346
 
 rho = 0.400
   Best diagonal Gaussian
-    W1: 0.2916 +/- 0.0326
-    W2: 0.3766 +/- 0.0350
-    mean_error: 0.0498 +/- 0.0228
-    var_error: 0.0591 +/- 0.0289
-    corr: -0.0029 +/- 0.0215
+    W1: 0.2972 +/- 0.0324
+    W2: 0.3808 +/- 0.0376
+    mean_error: 0.0458 +/- 0.0254
+    var_error: 0.0555 +/- 0.0231
+    corr: 0.0011 +/- 0.0199
   Product marginals
-    W1: 0.2888 +/- 0.0327
-    W2: 0.3748 +/- 0.0339
-    mean_error: 0.0571 +/- 0.0334
-    var_error: 0.0434 +/- 0.0216
-    corr: 0.0024 +/- 0.0273
+    W1: 0.2975 +/- 0.0335
+    W2: 0.3844 +/- 0.0375
+    mean_error: 0.0501 +/- 0.0271
+    var_error: 0.0436 +/- 0.0201
+    corr: 0.0010 +/- 0.0246
   WGAN
-    W1: 0.2935 +/- 0.0233
-    W2: 0.3811 +/- 0.0269
-    mean_error: 0.0606 +/- 0.0323
-    var_error: 0.0690 +/- 0.0367
-    corr: 0.0000 +/- 0.0245
-  Diagonal Gaussian fit
-    x1 variance: 0.9587 +/- 0.0198
-    x2 variance: 0.9510 +/- 0.0168
+    W1: 0.2987 +/- 0.0289
+    W2: 0.3857 +/- 0.0348
+    mean_error: 0.0502 +/- 0.0305
+    var_error: 0.0647 +/- 0.0327
+    corr: -0.0033 +/- 0.0213
+  WGAN variance fit
+    x1 variance: 0.9520 +/- 0.0523
+    x2 variance: 0.9376 +/- 0.0451
     theoretical variance: 0.9583
-    Gaussian W2: 0.2895 +/- 0.0071
+  Diagonal Gaussian fit
+    x1 variance: 0.9618 +/- 0.0196
+    x2 variance: 0.9506 +/- 0.0181
+    theoretical variance: 0.9583
+    Gaussian W2: 0.2893 +/- 0.0070
   Paired transport gaps
-    product - best diagonal (W1): -0.0028 +/- 0.0333
-    product - best diagonal (W2): -0.0018 +/- 0.0405
-    WGAN - best diagonal (W1): 0.0019 +/- 0.0347
-    WGAN - best diagonal (W2): 0.0045 +/- 0.0391
+    product - best diagonal (W1): 0.0003 +/- 0.0321
+    product - best diagonal (W2): 0.0036 +/- 0.0369
+    WGAN - best diagonal (W1): 0.0015 +/- 0.0314
+    WGAN - best diagonal (W2): 0.0049 +/- 0.0361
 
 rho = 0.600
   Best diagonal Gaussian
-    W1: 0.4073 +/- 0.0297
-    W2: 0.5143 +/- 0.0329
-    mean_error: 0.0492 +/- 0.0233
-    var_error: 0.1049 +/- 0.0380
-    corr: -0.0029 +/- 0.0215
+    W1: 0.4038 +/- 0.0296
+    W2: 0.5108 +/- 0.0328
+    mean_error: 0.0447 +/- 0.0257
+    var_error: 0.1047 +/- 0.0306
+    corr: 0.0011 +/- 0.0199
   Product marginals
-    W1: 0.4184 +/- 0.0370
-    W2: 0.5243 +/- 0.0438
-    mean_error: 0.0560 +/- 0.0353
-    var_error: 0.0419 +/- 0.0188
-    corr: 0.0022 +/- 0.0271
+    W1: 0.4128 +/- 0.0334
+    W2: 0.5196 +/- 0.0383
+    mean_error: 0.0488 +/- 0.0279
+    var_error: 0.0430 +/- 0.0184
+    corr: 0.0005 +/- 0.0246
   WGAN
-    W1: 0.4171 +/- 0.0293
-    W2: 0.5269 +/- 0.0319
-    mean_error: 0.0558 +/- 0.0253
-    var_error: 0.1145 +/- 0.0554
-    corr: 0.0013 +/- 0.0256
-  Diagonal Gaussian fit
-    x1 variance: 0.9004 +/- 0.0189
-    x2 variance: 0.8941 +/- 0.0158
+    W1: 0.4118 +/- 0.0338
+    W2: 0.5197 +/- 0.0402
+    mean_error: 0.0467 +/- 0.0239
+    var_error: 0.1133 +/- 0.0489
+    corr: -0.0026 +/- 0.0215
+  WGAN variance fit
+    x1 variance: 0.8873 +/- 0.0412
+    x2 variance: 0.8837 +/- 0.0544
     theoretical variance: 0.9000
-    Gaussian W2: 0.4481 +/- 0.0077
+  Diagonal Gaussian fit
+    x1 variance: 0.9035 +/- 0.0187
+    x2 variance: 0.8937 +/- 0.0168
+    theoretical variance: 0.9000
+    Gaussian W2: 0.4482 +/- 0.0076
   Paired transport gaps
-    product - best diagonal (W1): 0.0112 +/- 0.0358
-    product - best diagonal (W2): 0.0100 +/- 0.0389
-    WGAN - best diagonal (W1): 0.0098 +/- 0.0288
-    WGAN - best diagonal (W2): 0.0126 +/- 0.0363
+    product - best diagonal (W1): 0.0090 +/- 0.0355
+    product - best diagonal (W2): 0.0088 +/- 0.0382
+    WGAN - best diagonal (W1): 0.0080 +/- 0.0372
+    WGAN - best diagonal (W2): 0.0089 +/- 0.0414
 
 rho = 0.800
   Best diagonal Gaussian
-    W1: 0.5424 +/- 0.0343
-    W2: 0.6818 +/- 0.0407
-    mean_error: 0.0481 +/- 0.0242
-    var_error: 0.2040 +/- 0.0391
-    corr: -0.0029 +/- 0.0215
+    W1: 0.5443 +/- 0.0335
+    W2: 0.6817 +/- 0.0409
+    mean_error: 0.0431 +/- 0.0255
+    var_error: 0.2052 +/- 0.0315
+    corr: 0.0011 +/- 0.0199
   Product marginals
-    W1: 0.5576 +/- 0.0368
-    W2: 0.6922 +/- 0.0466
-    mean_error: 0.0549 +/- 0.0369
-    var_error: 0.0408 +/- 0.0182
-    corr: 0.0018 +/- 0.0260
+    W1: 0.5627 +/- 0.0356
+    W2: 0.7015 +/- 0.0429
+    mean_error: 0.0471 +/- 0.0289
+    var_error: 0.0421 +/- 0.0190
+    corr: -0.0002 +/- 0.0243
   WGAN
-    W1: 0.5573 +/- 0.0313
-    W2: 0.6989 +/- 0.0397
-    mean_error: 0.0649 +/- 0.0301
-    var_error: 0.2261 +/- 0.0609
-    corr: 0.0019 +/- 0.0254
-  Diagonal Gaussian fit
-    x1 variance: 0.8004 +/- 0.0172
-    x2 variance: 0.7961 +/- 0.0142
+    W1: 0.5507 +/- 0.0296
+    W2: 0.6902 +/- 0.0372
+    mean_error: 0.0575 +/- 0.0267
+    var_error: 0.2303 +/- 0.0548
+    corr: -0.0021 +/- 0.0214
+  WGAN variance fit
+    x1 variance: 0.7738 +/- 0.0508
+    x2 variance: 0.7665 +/- 0.0608
     theoretical variance: 0.8000
-    Gaussian W2: 0.6334 +/- 0.0087
+  Diagonal Gaussian fit
+    x1 variance: 0.8033 +/- 0.0170
+    x2 variance: 0.7959 +/- 0.0146
+    theoretical variance: 0.8000
+    Gaussian W2: 0.6341 +/- 0.0085
   Paired transport gaps
-    product - best diagonal (W1): 0.0153 +/- 0.0288
-    product - best diagonal (W2): 0.0104 +/- 0.0350
-    WGAN - best diagonal (W1): 0.0149 +/- 0.0331
-    WGAN - best diagonal (W2): 0.0171 +/- 0.0411
+    product - best diagonal (W1): 0.0184 +/- 0.0314
+    product - best diagonal (W2): 0.0198 +/- 0.0379
+    WGAN - best diagonal (W1): 0.0064 +/- 0.0324
+    WGAN - best diagonal (W2): 0.0084 +/- 0.0401

@@ -1,0 +1,26 @@
+Best diagonal Gaussian
+  W1: 0.2742
+  W2: 0.3466
+  mean_error: 0.0417
+  diag_var_error: 0.0563
+  offdiag_cov_error: 0.2001
+  cov_fro_error: 0.2958
+  avg_abs_corr: 0.0018
+
+Product marginals
+  W1: 0.2809
+  W2: 0.3647
+  mean_error: 0.0782
+  diag_var_error: 0.0404
+  offdiag_cov_error: 0.1864
+  cov_fro_error: 0.2699
+  avg_abs_corr: 0.0120
+
+WGAN
+  W1: 0.5232
+  W2: 0.6447
+  mean_error: 0.1277
+  diag_var_error: 0.6061
+  offdiag_cov_error: 0.1958
+  cov_fro_error: 0.9445
+  avg_abs_corr: 0.0082

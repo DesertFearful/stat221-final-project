@@ -1,0 +1,13 @@
+data_dim,rho,num_seeds,selected_epoch_mean,selected_epoch_std,selected_eval_w1_mean,selected_eval_w1_std,best_epoch_mean,best_epoch_std,best_eval_w1_mean,best_eval_w1_std
+2,0.2,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+2,0.5,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+2,0.8,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+5,0.2,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+5,0.5,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+5,0.8,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+10,0.2,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+10,0.5,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+10,0.8,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+20,0.2,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+20,0.5,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan
+20,0.8,10,50.0,0.0,nan,nan,50.0,0.0,nan,nan

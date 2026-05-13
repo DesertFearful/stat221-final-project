@@ -56,18 +56,33 @@ def resolve_learning_rates(shared_lr, generator_lr, critic_lr):
     return lr_g, lr_c
 
 
-# Sample from a centered correlated Gaussian in R^2.
-def make_correlated_gaussian_samples(n_samples, rho, seed):
+# Sample from a centered equicorrelated Gaussian in R^p.
+def make_equicorrelated_gaussian_samples(n_samples, data_dim, rho, seed):
     if n_samples < 1:
         raise ValueError(f"Expected n_samples to be positive, got {n_samples}")
+    if data_dim < 1:
+        raise ValueError(f"Expected data_dim to be positive, got {data_dim}")
     if abs(rho) >= 1:
         raise ValueError(f"Expected |rho| < 1, got {rho}")
 
-    covariance = torch.tensor([[1.0, rho], [rho, 1.0]], dtype=torch.float32)
+    lower_bound = -1.0 / max(data_dim - 1, 1)
+    if rho <= lower_bound:
+        raise ValueError(
+            f"Expected rho > {-1.0 / max(data_dim - 1, 1):.4f} for a positive definite "
+            f"equicorrelation matrix in dimension {data_dim}, got {rho}"
+        )
+
+    covariance = (1.0 - rho) * torch.eye(data_dim, dtype=torch.float32)
+    covariance = covariance + rho * torch.ones((data_dim, data_dim), dtype=torch.float32)
     chol = torch.linalg.cholesky(covariance)
     generator = torch.Generator().manual_seed(seed)
-    z = torch.randn(n_samples, 2, generator=generator)
+    z = torch.randn(n_samples, data_dim, generator=generator)
     return z @ chol.T
+
+
+# Backward-compatible wrapper for the original 2D experiment.
+def make_correlated_gaussian_samples(n_samples, rho, seed):
+    return make_equicorrelated_gaussian_samples(n_samples, data_dim=2, rho=rho, seed=seed)
 
 
 # Wrap the synthetic samples in a shuffled dataloader.
@@ -147,7 +162,7 @@ def save_loss_plot(history, output_path):
     if "gradient_penalty" in history:
         loss_axis.plot(epochs, history["gradient_penalty"], label="gradient penalty")
     selected_epoch = None
-    if history.get("checkpoint_selection") == "best_eval_w1":
+    if history.get("checkpoint_selection") in {"best_eval_w1", "best_eval_composite"}:
         selected_epoch = history.get("selected_epoch")
     if selected_epoch is not None:
         loss_axis.axvline(selected_epoch, color="black", linestyle="--", alpha=0.5, label="selected checkpoint")

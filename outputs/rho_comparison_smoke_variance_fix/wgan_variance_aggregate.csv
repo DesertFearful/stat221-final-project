@@ -1,0 +1,2 @@
+rho,num_seeds,theoretical_diag_var,wgan_var_1_mean,wgan_var_1_std,wgan_var_2_mean,wgan_var_2_std,wgan_var_mean_mean,wgan_var_mean_std
+0.0,1,1.0,8.59475476318039e-05,0.0,0.0011200980516150594,0.0,0.0006030227996234316,0.0

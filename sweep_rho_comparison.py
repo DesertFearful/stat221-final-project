@@ -160,6 +160,33 @@ def aggregate_diagonal_results(diagonal_results):
     return aggregate
 
 
+# Track how the learned WGAN coordinate variances change with dependence strength.
+def aggregate_wgan_variance_results(wgan_variance_results):
+    metrics = ["wgan_var_1", "wgan_var_2", "wgan_var_mean"]
+    grouped = {}
+
+    for result in wgan_variance_results:
+        grouped.setdefault(result["rho"], []).append(result)
+
+    aggregate = []
+    for rho in sorted(grouped):
+        group = grouped[rho]
+        summary = {
+            "rho": rho,
+            "num_seeds": len(group),
+            "theoretical_diag_var": group[0]["theoretical_diag_var"],
+        }
+
+        for metric in metrics:
+            values = torch.tensor([item[metric] for item in group], dtype=torch.float64)
+            summary[f"{metric}_mean"] = values.mean().item()
+            summary[f"{metric}_std"] = values.std(unbiased=False).item()
+
+        aggregate.append(summary)
+
+    return aggregate
+
+
 # Compare methods on the same seed so the gap curves are paired and easier to trust.
 def compute_gap_results(per_seed_results):
     grouped = {}
@@ -259,7 +286,31 @@ def save_summary_curves(aggregate_results, output_path):
     plt.close(figure)
 
 
-# Show the learned diagonal variances against the closed-form Gaussian benchmark.
+# Show the learned WGAN variances against the closed-form Gaussian benchmark.
+def save_wgan_variance_plot(wgan_variance_aggregate, output_path):
+    rho_values = [row["rho"] for row in wgan_variance_aggregate]
+    var1 = [row["wgan_var_1_mean"] for row in wgan_variance_aggregate]
+    var1_std = [row["wgan_var_1_std"] for row in wgan_variance_aggregate]
+    var2 = [row["wgan_var_2_mean"] for row in wgan_variance_aggregate]
+    var2_std = [row["wgan_var_2_std"] for row in wgan_variance_aggregate]
+    theory = [row["theoretical_diag_var"] for row in wgan_variance_aggregate]
+
+    figure, axis = plt.subplots(figsize=(8, 5))
+    axis.errorbar(rho_values, var1, yerr=var1_std, marker="o", capsize=4, label="WGAN variance x1", color="tab:blue")
+    axis.errorbar(rho_values, var2, yerr=var2_std, marker="s", capsize=4, label="WGAN variance x2", color="tab:cyan")
+    axis.plot(rho_values, theory, linestyle="--", color="black", label="Theoretical optimum")
+    axis.axhline(1.0, linestyle=":", color="gray", label="Product marginals variance")
+    axis.set_title("WGAN variance vs rho")
+    axis.set_xlabel("rho")
+    axis.set_ylabel("variance")
+    axis.grid(alpha=0.25)
+    axis.legend()
+    figure.tight_layout()
+    figure.savefig(output_path, dpi=200)
+    plt.close(figure)
+
+
+# Keep the original diagonal-benchmark variance plot as a separate diagnostic.
 def save_diagonal_variance_plot(diagonal_aggregate, output_path):
     rho_values = [row["rho"] for row in diagonal_aggregate]
     var1 = [row["diag_var_1_mean"] for row in diagonal_aggregate]
@@ -329,7 +380,7 @@ def save_gap_plot(gap_aggregate, output_path):
 
 
 # Write a readable text summary that matches the CSV outputs.
-def save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, output_path):
+def save_summary_text(aggregate_results, wgan_variance_aggregate, diagonal_aggregate, gap_aggregate, output_path):
     lines = []
     rho_values = sorted({row["rho"] for row in aggregate_results})
 
@@ -352,10 +403,15 @@ def save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, outp
                 ]
             )
 
+        wgan_variance_row = [row for row in wgan_variance_aggregate if row["rho"] == rho][0]
         diagonal_row = [row for row in diagonal_aggregate if row["rho"] == rho][0]
         gap_row = [row for row in gap_aggregate if row["rho"] == rho][0]
         lines.extend(
             [
+                "  WGAN variance fit",
+                f"    x1 variance: {wgan_variance_row['wgan_var_1_mean']:.4f} +/- {wgan_variance_row['wgan_var_1_std']:.4f}",
+                f"    x2 variance: {wgan_variance_row['wgan_var_2_mean']:.4f} +/- {wgan_variance_row['wgan_var_2_std']:.4f}",
+                f"    theoretical variance: {wgan_variance_row['theoretical_diag_var']:.4f}",
                 "  Diagonal Gaussian fit",
                 f"    x1 variance: {diagonal_row['diag_var_1_mean']:.4f} +/- {diagonal_row['diag_var_1_std']:.4f}",
                 f"    x2 variance: {diagonal_row['diag_var_2_mean']:.4f} +/- {diagonal_row['diag_var_2_std']:.4f}",
@@ -442,6 +498,16 @@ def run_single_experiment(args, rho, seed, device):
         metrics["method"] = method_name
         results.append(metrics)
 
+    wgan_covariance = torch.cov(wgan_samples.T)
+    wgan_variance_result = {
+        "rho": rho,
+        "seed": seed,
+        "wgan_var_1": wgan_covariance[0, 0].item(),
+        "wgan_var_2": wgan_covariance[1, 1].item(),
+        "wgan_var_mean": 0.5 * (wgan_covariance[0, 0].item() + wgan_covariance[1, 1].item()),
+        "theoretical_diag_var": theoretical_diagonal_variance(rho),
+    }
+
     diag_vars = diagonal_fit["diag_vars"].cpu()
     diagonal_result = {
         "rho": rho,
@@ -455,6 +521,7 @@ def run_single_experiment(args, rho, seed, device):
 
     return {
         "results": results,
+        "wgan_variance_result": wgan_variance_result,
         "diagonal_result": diagonal_result,
         "history": history,
         "eval_samples": eval_samples,
@@ -510,6 +577,7 @@ def main():
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     per_seed_results = []
+    wgan_variance_results = []
     diagonal_results = []
     reference_seed = seeds[0]
     args.reference_seed = reference_seed
@@ -519,6 +587,7 @@ def main():
             print(f"Running rho={rho:.3f}, seed={seed}")
             experiment = run_single_experiment(args, rho, seed, device)
             per_seed_results.extend(experiment["results"])
+            wgan_variance_results.append(experiment["wgan_variance_result"])
             diagonal_results.append(experiment["diagonal_result"])
 
             if seed == reference_seed:
@@ -542,18 +611,28 @@ def main():
     aggregate_results = aggregate_method_results(per_seed_results)
     gap_results = compute_gap_results(per_seed_results)
     gap_aggregate = aggregate_gap_results(gap_results)
+    wgan_variance_aggregate = aggregate_wgan_variance_results(wgan_variance_results)
     diagonal_aggregate = aggregate_diagonal_results(diagonal_results)
 
     save_results_csv(per_seed_results, args.output_dir / "per_seed_results.csv")
     save_results_csv(aggregate_results, args.output_dir / "aggregate_results.csv")
+    save_results_csv(wgan_variance_results, args.output_dir / "wgan_variance_per_seed.csv")
+    save_results_csv(wgan_variance_aggregate, args.output_dir / "wgan_variance_aggregate.csv")
     save_results_csv(diagonal_results, args.output_dir / "diagonal_fit_per_seed.csv")
     save_results_csv(diagonal_aggregate, args.output_dir / "diagonal_fit_aggregate.csv")
     save_results_csv(gap_results, args.output_dir / "paired_gap_per_seed.csv")
     save_results_csv(gap_aggregate, args.output_dir / "paired_gap_aggregate.csv")
     save_summary_curves(aggregate_results, args.output_dir / "summary_curves.png")
-    save_diagonal_variance_plot(diagonal_aggregate, args.output_dir / "diag_variance_vs_rho.png")
+    save_wgan_variance_plot(wgan_variance_aggregate, args.output_dir / "diag_variance_vs_rho.png")
+    save_diagonal_variance_plot(diagonal_aggregate, args.output_dir / "diagonal_benchmark_variance_vs_rho.png")
     save_gap_plot(gap_aggregate, args.output_dir / "gap_vs_rho.png")
-    save_summary_text(aggregate_results, diagonal_aggregate, gap_aggregate, args.output_dir / "summary.txt")
+    save_summary_text(
+        aggregate_results,
+        wgan_variance_aggregate,
+        diagonal_aggregate,
+        gap_aggregate,
+        args.output_dir / "summary.txt",
+    )
 
     print(f"Finished. Sweep outputs saved to {args.output_dir}")
 

@@ -1,0 +1,47 @@
+Best W1 diagonal Gaussian
+  W1: 2.3023
+  W2: 2.5199
+  mean_error: 0.0909
+  diag_var_error: 0.6535
+  candidate_diag_var_mean: 0.3410
+  theoretical_diag_var: 0.7585
+  candidate_minus_theoretical_diag_var: -0.4175
+  offdiag_cov_error: 0.4921
+  cov_fro_error: 5.1105
+  avg_abs_corr: 0.0183
+
+WGAN
+  W1: 2.3401
+  W2: 2.5368
+  mean_error: 0.1687
+  diag_var_error: 0.4489
+  candidate_diag_var_mean: 0.5455
+  theoretical_diag_var: 0.7585
+  candidate_minus_theoretical_diag_var: -0.2130
+  offdiag_cov_error: 0.4916
+  cov_fro_error: 4.8825
+  avg_abs_corr: 0.0164
+
+Best diagonal Gaussian
+  W1: 2.4487
+  W2: 2.6135
+  mean_error: 0.1123
+  diag_var_error: 0.2455
+  candidate_diag_var_mean: 0.7490
+  theoretical_diag_var: 0.7585
+  candidate_minus_theoretical_diag_var: -0.0095
+  offdiag_cov_error: 0.4920
+  cov_fro_error: 4.7383
+  avg_abs_corr: 0.0176
+
+Product marginals
+  W1: 2.5967
+  W2: 2.7309
+  mean_error: 0.1075
+  diag_var_error: 0.0379
+  candidate_diag_var_mean: 1.0077
+  theoretical_diag_var: 0.7585
+  candidate_minus_theoretical_diag_var: 0.2492
+  offdiag_cov_error: 0.4938
+  cov_fro_error: 4.6943
+  avg_abs_corr: 0.0180

@@ -1,0 +1,74 @@
+p = 20
+  rho = 0.50
+    Best diagonal Gaussian
+      W1: 4.1080 +/- 0.0396
+      W2: 4.2638 +/- 0.0538
+      mean_error: 0.1283 +/- 0.0079
+      diag_var_error: 0.3102 +/- 0.0106
+      offdiag_cov_error: 0.5067 +/- 0.0090
+      cov_fro_error: 9.9889 +/- 0.1791
+      avg_abs_corr: 0.0183 +/- 0.0008
+    Product marginals
+      W1: 4.4613 +/- 0.0484
+      W2: 4.5997 +/- 0.0563
+      mean_error: 0.1332 +/- 0.0102
+      diag_var_error: 0.0393 +/- 0.0013
+      offdiag_cov_error: 0.5069 +/- 0.0100
+      cov_fro_error: 9.9010 +/- 0.1954
+      avg_abs_corr: 0.0182 +/- 0.0007
+    WGAN
+      W1: 4.3153 +/- 0.0768
+      W2: 4.4652 +/- 0.0795
+      mean_error: 0.1980 +/- 0.0327
+      diag_var_error: 0.2680 +/- 0.0505
+      offdiag_cov_error: 0.5076 +/- 0.0104
+      cov_fro_error: 10.0142 +/- 0.2092
+      avg_abs_corr: 0.0186 +/- 0.0007
+    WGAN checkpointing
+      selected_epoch: 75.0 +/- 0.0
+      selected_eval_w1: 4.3280 +/- 0.0443
+      selected_eval_mean_error: 0.2428 +/- 0.0814
+      selected_eval_diag_var_error: 0.2842 +/- 0.0539
+      selected_checkpoint_score: 5.0177 +/- 0.1517
+    Paired transport gaps
+      product - best diagonal (W1): 0.3533 +/- 0.0088
+      product - best diagonal (W2): 0.3359 +/- 0.0133
+      WGAN - best diagonal (W1): 0.2073 +/- 0.0377
+      WGAN - best diagonal (W2): 0.2014 +/- 0.0333
+
+  rho = 0.80
+    Best diagonal Gaussian
+      W1: 3.8862 +/- 0.0973
+      W2: 4.2605 +/- 0.0885
+      mean_error: 0.0991 +/- 0.0058
+      diag_var_error: 0.6236 +/- 0.0133
+      offdiag_cov_error: 0.8179 +/- 0.0135
+      cov_fro_error: 16.1890 +/- 0.2699
+      avg_abs_corr: 0.0183 +/- 0.0008
+    Product marginals
+      W1: 4.7462 +/- 0.0511
+      W2: 4.9694 +/- 0.0566
+      mean_error: 0.1165 +/- 0.0034
+      diag_var_error: 0.0375 +/- 0.0014
+      offdiag_cov_error: 0.8174 +/- 0.0143
+      cov_fro_error: 15.9429 +/- 0.2786
+      avg_abs_corr: 0.0175 +/- 0.0003
+    WGAN
+      W1: 4.0330 +/- 0.0785
+      W2: 4.4165 +/- 0.0875
+      mean_error: 0.5365 +/- 0.3613
+      diag_var_error: 0.6159 +/- 0.0336
+      offdiag_cov_error: 0.8182 +/- 0.0143
+      cov_fro_error: 16.2204 +/- 0.2962
+      avg_abs_corr: 0.0187 +/- 0.0013
+    WGAN checkpointing
+      selected_epoch: 75.0 +/- 0.0
+      selected_eval_w1: 4.0970 +/- 0.0715
+      selected_eval_mean_error: 0.5685 +/- 0.2640
+      selected_eval_diag_var_error: 0.6277 +/- 0.0066
+      selected_checkpoint_score: 5.6367 +/- 0.1604
+    Paired transport gaps
+      product - best diagonal (W1): 0.8600 +/- 0.0478
+      product - best diagonal (W2): 0.7089 +/- 0.0330
+      WGAN - best diagonal (W1): 0.1468 +/- 0.0535
+      WGAN - best diagonal (W2): 0.1560 +/- 0.0494
